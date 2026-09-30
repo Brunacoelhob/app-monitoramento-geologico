@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+// Cartao "bento": superficie elevada, brilho suave no canto e icone em pastilha colorida
+.cartao {
+  all: unset;
+  --tom: var(--acento);
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  height: 100%;
+  min-height: 11.5rem;
+  padding: 1.15rem 1.25rem 1rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--realce);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &.termico {
+    --tom: var(--calor);
+  }
+
+  // brilho do canto superior direito
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(220px 120px at 100% 0, color-mix(in srgb, var(--tom) 13%, transparent), transparent 72%);
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--borda-forte);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 22px 40px -20px color-mix(in srgb, var(--tom) 45%, rgba(15, 23, 42, 0.3));
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--foco);
+    outline-offset: 2px;
+  }
+}
+
+.cabeca {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--texto-2);
+}
+
+.icone {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 14px;
+  color: var(--tom);
+  background: color-mix(in srgb, var(--tom) 14%, transparent);
+
+  mat-icon {
+    font-size: 1.3rem;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
+}
+
+.titulo {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+// Sempre visivel: indica que o cartao abre uma explicacao (tambem no toque)
+.info {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  opacity: 0.55;
+}
+
+.valor {
+  position: relative;
+  margin-top: 0.9rem;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: var(--texto);
+
+  small {
+    margin-left: 0.25rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--texto-2);
+  }
+}
+
+.descricao {
+  position: relative;
+  font-size: 0.875rem;
+  color: var(--texto-2);
+}
+
+.grafico {
+  position: relative;
+  width: 100%;
+  height: 2.8rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  overflow: visible;
+}
+
+.esqueleto {
+  display: inline-block;
+  width: 7rem;
+  height: 2.2rem;
+  border-radius: 10px;
+  background: var(--superficie-2);
+}

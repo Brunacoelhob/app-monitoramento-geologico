@@ -1,0 +1,14 @@
+<section class="hero" [attr.aria-labelledby]="idTitulo">
+  <canvas #traco class="traco" aria-hidden="true"></canvas>
+
+  <div class="conteudo">
+    <h1 [id]="idTitulo">{{ titulo() }}</h1>
+    @if (descricao()) {
+      <p class="descricao">{{ descricao() }}</p>
+    }
+    @if (ctaRotulo()) {
+      <a class="cta" [routerLink]="ctaRota()">{{ ctaRotulo() }}</a>
+    }
+    <ng-content />
+  </div>
+</section>

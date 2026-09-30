@@ -1,0 +1,62 @@
+:host {
+  display: block;
+}
+
+.exportar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--borda);
+  box-shadow: var(--realce);
+  border-radius: var(--raio);
+  background: var(--superficie);
+
+  p {
+    margin: 0;
+    color: var(--texto-2);
+  }
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--borda);
+  box-shadow: var(--realce);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+table {
+  width: 100%;
+  background: transparent;
+}
+
+td strong {
+  margin-right: 0.6rem;
+}
+
+.numero-col {
+  text-align: right;
+}
+
+.sem {
+  color: var(--texto-2);
+}
+
+.vazio {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--texto-2);
+}
+
+.aviso {
+  margin: 2rem 0;
+  color: var(--texto-2);
+
+  &.erro {
+    color: var(--mat-sys-error);
+  }
+}

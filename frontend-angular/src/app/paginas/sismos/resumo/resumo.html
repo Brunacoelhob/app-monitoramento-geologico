@@ -1,0 +1,87 @@
+@if (dados.carregando()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Carregando os dados" />
+}
+
+@if (dados.erro()) {
+  <p class="aviso erro" role="alert">Não foi possível carregar os dados. Tente novamente em instantes.</p>
+} @else {
+  <section class="kpis" aria-label="Indicadores do período">
+    <app-cartao-kpi
+      icone="public"
+      titulo="Sismos no período"
+      [valor]="dados.totais()?.totalEventos ?? null"
+      [carregando]="dados.carregando()"
+      descricao="Magnitude 4,0 ou mais"
+      (abrir)="abrir('eventos')"
+    />
+    <app-cartao-kpi
+      icone="vertical_align_top"
+      titulo="Maior magnitude"
+      [valor]="dados.totais()?.maiorMagnitude ?? null"
+      [casas]="1"
+      sufixo="M"
+      [carregando]="dados.carregando()"
+      descricao="Do período escolhido"
+      (abrir)="abrir('maior')"
+    />
+    <app-cartao-kpi
+      icone="notifications_active"
+      titulo="Alertas abertos"
+      [valor]="totalAlertas()"
+      [carregando]="dados.carregando()"
+      [descricao]="descricaoAlertas()"
+      (abrir)="abrir('alertas')"
+    />
+    <app-cartao-kpi
+      icone="sensors"
+      titulo="Estações online"
+      [valor]="dados.totais()?.estacoes?.online ?? null"
+      [sufixo]="sufixoEstacoes()"
+      [carregando]="dados.carregando()"
+      descricao="Com leitura nos últimos 15 min"
+      (abrir)="abrir('estacoes')"
+    />
+  </section>
+
+  <div class="colunas">
+    <section class="bloco" aria-labelledby="t-alertas">
+      <header>
+        <h2 id="t-alertas">Alertas abertos</h2>
+        <a routerLink="/alertas">Ver todos os alertas</a>
+      </header>
+      @if (alertasAbertos().length === 0) {
+        <p class="vazio">Nenhum alerta aberto no momento.</p>
+      } @else {
+        <ul class="lista">
+          @for (a of alertasAbertos(); track a.id) {
+            <li>
+              <app-selo-nivel [nivel]="a.nivel" />
+              <a [routerLink]="['/alertas', a.id]">{{ a.titulo }}</a>
+              <small>{{ a.abertoEm | date: 'dd/MM HH:mm' : '+0900' }} JST</small>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section class="bloco" aria-labelledby="t-ultimos">
+      <header>
+        <h2 id="t-ultimos">Últimos sismos</h2>
+        <a routerLink="/sismos/dados">Ver todos</a>
+      </header>
+      @if (ultimos().length === 0) {
+        <p class="vazio">Nenhum sismo neste período. Escolha outras datas no calendário.</p>
+      } @else {
+        <ul class="lista">
+          @for (e of ultimos(); track e.id) {
+            <li>
+              <app-selo-nivel [nivel]="nivelDe(e.magnitude)" />
+              <span><strong class="numero">M{{ e.magnitude.toFixed(1) }}</strong> {{ e.local }}</span>
+              <small>{{ dataJst(e.ocorridoEm) }}</small>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+}

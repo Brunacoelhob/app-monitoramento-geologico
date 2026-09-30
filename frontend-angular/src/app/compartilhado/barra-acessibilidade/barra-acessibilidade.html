@@ -1,0 +1,71 @@
+<a class="pular" href="#conteudo" (click)="irParaConteudo($event)">Pular para o conteúdo</a>
+
+<div #barra class="barra" role="region" aria-label="Acessibilidade">
+  <button
+    type="button"
+    class="controle abrir"
+    [attr.aria-expanded]="aberta()"
+    aria-controls="controles-acessibilidade"
+    (click)="aberta.set(!aberta())"
+  >
+    <mat-icon aria-hidden="true">accessibility_new</mat-icon>
+    Acessibilidade
+    <mat-icon aria-hidden="true">{{ aberta() ? 'expand_less' : 'expand_more' }}</mat-icon>
+  </button>
+
+  <div id="controles-acessibilidade" class="controles" [class.aberta]="aberta()">
+    <!-- Tamanho do texto -->
+    <div class="controle segmentado" role="group" aria-label="Tamanho do texto">
+      <button type="button" aria-label="Diminuir o texto" [disabled]="a11y.passoFonte() === 0" (click)="a11y.diminuirFonte()">A−</button>
+      <button type="button" class="valor" aria-label="Voltar ao tamanho padrão do texto" (click)="a11y.restaurarFonte()">
+        {{ a11y.percentualFonte() }}%
+      </button>
+      <button type="button" aria-label="Aumentar o texto" [disabled]="a11y.passoFonte() === ultimoPasso" (click)="a11y.aumentarFonte()">A+</button>
+    </div>
+
+    <!-- Escolhas -->
+    <label class="controle campo">
+      <span>Tema</span>
+      <select [value]="a11y.tema()" (change)="escolherTema($event)">
+        @for (tema of temas; track tema.valor) {
+          <option [value]="tema.valor" [selected]="tema.valor === a11y.tema()">{{ tema.rotulo }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="controle campo">
+      <span>Daltonismo</span>
+      <select [value]="a11y.daltonismo()" (change)="escolherDaltonismo($event)">
+        @for (opcao of daltonismos; track opcao.valor) {
+          <option [value]="opcao.valor" [selected]="opcao.valor === a11y.daltonismo()">{{ opcao.rotulo }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="controle campo">
+      <span>Fonte</span>
+      <select [value]="a11y.fonteLeitura()" (change)="escolherFonte($event)" aria-label="Fonte para dislexia">
+        @for (opcao of fontes; track opcao.valor) {
+          <option [value]="opcao.valor" [selected]="opcao.valor === a11y.fonteLeitura()">{{ opcao.rotulo }}</option>
+        }
+      </select>
+    </label>
+
+    <!-- Liga e desliga -->
+    <button type="button" class="controle alternar" [attr.aria-pressed]="a11y.reduzirMovimento()" (click)="a11y.alternarMovimento()">
+      <mat-icon aria-hidden="true">{{ a11y.reduzirMovimento() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+      Reduzir animações
+    </button>
+
+    <!-- Acoes -->
+    <button type="button" class="controle" [attr.aria-pressed]="a11y.lendo()" (click)="a11y.lerPagina()">
+      <mat-icon aria-hidden="true">{{ a11y.lendo() ? 'stop_circle' : 'volume_up' }}</mat-icon>
+      {{ a11y.lendo() ? 'Parar a leitura' : 'Ler esta página' }}
+    </button>
+
+    <button type="button" class="controle" (click)="a11y.abrirLibras()">
+      <mat-icon aria-hidden="true">sign_language</mat-icon>
+      Libras
+    </button>
+  </div>
+</div>

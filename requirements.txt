@@ -1,4 +1,0 @@
-# Bibliotecas necessárias para o Pipeline IoT
-pandas==2.2.0
-sqlalchemy==2.0.25
-psycopg2-binary==2.9.9

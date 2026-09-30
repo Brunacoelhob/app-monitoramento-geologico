@@ -1,0 +1,141 @@
+.modal {
+  min-width: min(520px, 86vw);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 16px 4px 24px;
+
+  .titulos {
+    flex: 1;
+  }
+
+  h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 22px;
+  }
+
+  .periodo {
+    font-size: 13px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.icone {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: var(--mat-sys-on-surface);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.destaque {
+  margin: 8px 0 14px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--mat-sys-on-surface);
+
+  small {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+h3 {
+  margin: 18px 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+  max-width: 62ch;
+  line-height: 1.55;
+}
+
+.calculo {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-container);
+  font-size: 14px;
+
+  mat-icon {
+    flex: none;
+  }
+}
+
+.linhas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linha-texto {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+
+  strong {
+    font-weight: 600;
+    text-align: right;
+  }
+}
+
+.trilho {
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: var(--mat-sys-surface-container-highest);
+  overflow: hidden;
+}
+
+// A barra cresce quando o modal abre (resposta ao clique)
+.barra {
+  height: 100%;
+  min-width: 4px;
+  border-radius: 4px;
+  animation: crescer 0.6s ease-out both;
+}
+
+.dica {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    flex: none;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@keyframes crescer {
+  from {
+    width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barra {
+    animation: none;
+  }
+}

@@ -1,0 +1,88 @@
+@if (dados.carregando()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Carregando os dados" />
+}
+
+@if (filtros.semDados()) {
+  <p class="aviso">Ainda não há leituras. Peça ao administrador para importar os dados.</p>
+} @else if (dados.erro() || filtros.erro()) {
+  <p class="aviso erro" role="alert">Não foi possível carregar os dados. Tente novamente em instantes.</p>
+} @else if (!filtros.consulta()) {
+  <p class="aviso">Escolha um período completo e ao menos um sentido.</p>
+} @else {
+  @if (filtros.origem() === null) {
+    <p class="nota">
+      <mat-icon aria-hidden="true">science</mat-icon>
+      <span>
+        Os números incluem leituras simuladas das estações do Japão. Para ver só as reais, escolha
+        "Somente reais" em Origem dos dados.
+      </span>
+    </p>
+  }
+
+  <section class="kpis" aria-label="Indicadores do período">
+    <app-cartao-kpi
+      icone="device_thermostat"
+      titulo="Temperatura média"
+      tom="termico"
+      [valor]="dados.totais()?.temperaturaMedia ?? null"
+      [casas]="2"
+      sufixo="°C"
+      [tendencia]="tendenciaMedia()"
+      [carregando]="dados.carregando()"
+      descricao="Evolução da média diária"
+      (abrir)="abrirDetalhe('media')"
+    />
+    <app-cartao-kpi
+      icone="swap_vert"
+      titulo="Variação de temperatura"
+      tom="termico"
+      [valor]="amplitude()"
+      [casas]="1"
+      sufixo="°C"
+      [tendencia]="tendenciaAmplitude()"
+      [carregando]="dados.carregando()"
+      descricao="Da menor à maior temperatura, por dia"
+      (abrir)="abrirDetalhe('amplitude')"
+    />
+    <app-cartao-kpi
+      icone="dataset"
+      titulo="Leituras"
+      [valor]="dados.totais()?.totalLeituras ?? null"
+      [carregando]="dados.carregando()"
+      descricao="Registros dos sensores"
+      (abrir)="abrirDetalhe('total')"
+    />
+    <app-cartao-kpi
+      icone="meeting_room"
+      titulo="Salas"
+      [valor]="dados.totais()?.salasMonitoradas ?? null"
+      [carregando]="dados.carregando()"
+      descricao="Com leituras no período"
+      (abrir)="abrirDetalhe('salas')"
+    />
+  </section>
+
+  @if (semLeituras()) {
+    <section class="vazio">
+      <h2>Nenhuma leitura neste período</h2>
+      @if (filtros.periodoComDados(); as periodo) {
+        <p>
+          As leituras disponíveis vão de {{ periodo.inicio | date: 'dd/MM/yyyy' }} a
+          {{ periodo.fim | date: 'dd/MM/yyyy' }}.
+        </p>
+        <button mat-flat-button (click)="filtros.irParaUltimosDadosDisponiveis()">Ver os dados mais recentes</button>
+      } @else {
+        <p>Escolha outras datas no calendário.</p>
+      }
+    </section>
+  } @else if (escala(); as e) {
+    <section class="escala-bloco">
+      <h2>Perfil de temperatura</h2>
+      <p>
+        Cada camada é um trecho da escala, do frio ao calor. As marcas mostram onde fica a média de cada sensor
+        entre a menor e a maior temperatura do período.
+      </p>
+      <app-escala-termica [minimo]="e.minimo" [maximo]="e.maximo" [marcadores]="e.marcadores" />
+    </section>
+  }
+}

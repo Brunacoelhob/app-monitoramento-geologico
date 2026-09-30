@@ -1,0 +1,111 @@
+:host {
+  display: block;
+}
+
+.mapa {
+  width: 100%;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie-2);
+  z-index: 0;
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 0.75rem 0 0.25rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+.ponto {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+}
+
+.quadrado {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 2px dashed var(--texto);
+}
+
+.traco {
+  width: 1.4rem;
+  border-top: 3px dashed;
+
+  &.fino {
+    border-top: 2px solid;
+  }
+}
+
+.regioes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--superficie-2);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--acento);
+    border-color: var(--acento);
+    color: var(--sobre-acento);
+    font-weight: 700;
+  }
+
+  .n {
+    color: inherit;
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.nota {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--texto-2);
+}
+
+// Marcador de estacao (icone criado pelo Leaflet fora do escopo do componente)
+:host ::ng-deep .estacao {
+  display: block;
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border: 2px solid var(--cor);
+  background: var(--fundo);
+}
+
+:host ::ng-deep .estacao.online {
+  background: var(--cor);
+}
+
+:host ::ng-deep .estacao.simulada {
+  border-style: dashed;
+}

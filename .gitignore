@@ -1,0 +1,36 @@
+# Segredos e ambiente (NUNCA subir)
+.env
+.env.*
+!.env.example
+
+# Dependencias
+node_modules/
+venv/
+.venv/
+
+# Build e cache
+dist/
+build/
+coverage/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Dados locais do banco
+*.sql.gz
+pgdata/
+
+# Imagens enviadas pelos usuarios
+backend/uploads/
+uploads/

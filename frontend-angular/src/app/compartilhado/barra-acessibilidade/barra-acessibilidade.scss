@@ -1,0 +1,197 @@
+// Link para pular ao conteudo: so aparece quando recebe o foco do teclado
+.pular {
+  position: fixed;
+  top: 6px;
+  left: 6px;
+  z-index: 1300;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--raio-campo);
+  background: var(--acento);
+  color: var(--sobre-acento);
+  font-weight: 700;
+  transform: translateY(-300%);
+
+  &:focus {
+    transform: none;
+  }
+}
+
+.barra {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1200;
+  box-sizing: border-box;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: center; // controles centralizados
+  align-items: center;
+  background: var(--vidro);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--borda);
+  font-size: 0.875rem;
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+// ---------- Padrao unico: toda controle tem a mesma altura, borda, raio e fonte ----------
+.controle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.8rem;
+  border: 1px solid transparent;
+  border-radius: var(--raio-campo);
+  background: var(--superficie-2);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--borda-forte);
+  }
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
+// Botoes que liga/desliga ou estao ativos (alem da cor: icone e atributo aria-pressed)
+.controle[aria-pressed='true'] {
+  background: var(--degrade-acento);
+  color: var(--sobre-acento);
+
+  &:hover {
+    border-color: transparent;
+  }
+}
+
+// Tamanho do texto: tres botoes num so controle
+.segmentado {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  cursor: default;
+
+  &:hover {
+    border-color: transparent;
+  }
+
+  button {
+    height: 100%;
+    min-width: 2.5rem;
+    padding: 0 0.7rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+
+    &:hover:not([disabled]) {
+      background: var(--borda);
+    }
+
+    &[disabled] {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+
+  .valor {
+    min-width: 3.4rem;
+    color: var(--texto-2);
+    border-inline: 1px solid var(--borda);
+  }
+}
+
+// Escolhas: rotulo e lista dentro do mesmo controle
+.campo {
+  cursor: default;
+  padding-right: 0.3rem;
+
+  span {
+    color: var(--texto-2);
+    font-weight: 400;
+  }
+
+  select {
+    height: 100%;
+    padding: 0 0.3rem;
+    border: 0;
+    background: transparent;
+    color: var(--texto);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  &:focus-within {
+    outline: 3px solid var(--foco);
+    outline-offset: 2px;
+  }
+
+  select:focus-visible {
+    outline: none;
+  }
+}
+
+.abrir {
+  display: none;
+}
+
+// Telas estreitas: botao "Acessibilidade" abre o painel de controles
+@media (max-width: 1180px) {
+  .barra {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .abrir {
+    display: inline-flex;
+    align-self: center;
+  }
+
+  .controles {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    max-height: calc(100vh - 6rem);
+    margin-top: 0.6rem;
+    overflow-y: auto;
+
+    &.aberta {
+      display: flex;
+    }
+  }
+
+  .controle {
+    justify-content: space-between;
+  }
+
+  .segmentado button {
+    flex: 1;
+  }
+
+  .campo select {
+    flex: 1;
+    text-align: right;
+  }
+}

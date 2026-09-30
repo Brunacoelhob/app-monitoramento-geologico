@@ -1,0 +1,78 @@
+<app-hero
+  titulo="Sismos, placas tectônicas e temperatura: o monitoramento geológico do planeta"
+  descricao="Terremotos de todo o mundo, o movimento das placas, o Japão em detalhe e as leituras das estações."
+  ctaRotulo="Ver gráficos"
+  [ctaRota]="['/sismos', 'graficos']"
+/>
+
+<div class="miolo">
+
+<div class="grade">
+  <section class="sismos" aria-labelledby="t-sismos">
+    <header>
+      <h2 id="t-sismos">Sismos nos últimos 30 dias</h2>
+      <a routerLink="/sismos">Abrir sismos</a>
+    </header>
+
+    <div class="kpis">
+      <app-cartao-kpi icone="public" titulo="Sismos" [valor]="sismos.totais()?.totalEventos ?? null" [carregando]="sismos.carregando()" descricao="Magnitude 4,0 ou mais" (abrir)="irPara('/sismos')" />
+      <app-cartao-kpi icone="vertical_align_top" titulo="Maior magnitude" [valor]="sismos.totais()?.maiorMagnitude ?? null" [casas]="1" sufixo="M" [carregando]="sismos.carregando()" descricao="Do período" (abrir)="irPara('/sismos')" />
+      <app-cartao-kpi icone="notifications_active" titulo="Alertas abertos" [valor]="totalAlertas()" [carregando]="sismos.carregando()" descricao="Precisam de atenção" (abrir)="irPara('/alertas')" />
+      <app-cartao-kpi icone="sensors" titulo="Estações online" [valor]="sismos.totais()?.estacoes?.online ?? null" [sufixo]="sufixoEstacoes()" [carregando]="sismos.carregando()" descricao="Leitura nos últimos 15 min" (abrir)="irPara('/estacoes')" />
+    </div>
+
+    <app-mapa-sismos [pontos]="sismos.pontos()" [estacoes]="estacoes.estacoes()" altura="26rem" [compacto]="true" />
+    <p class="nota">Mapa ilustrativo. Para explorar, abra <a routerLink="/sismos/mapa">a aba Mapa</a>.</p>
+  </section>
+
+  <aside class="lateral">
+    <section aria-labelledby="t-alertas">
+      <header>
+        <h2 id="t-alertas">Alertas abertos</h2>
+        <a routerLink="/alertas">Ver todos</a>
+      </header>
+      @if (alertas().length === 0) {
+        <p class="vazio">Nenhum alerta aberto no momento.</p>
+      } @else {
+        <ul class="lista">
+          @for (a of alertas(); track a.id) {
+            <li>
+              <app-selo-nivel [nivel]="a.nivel" />
+              <a [routerLink]="['/alertas', a.id]">{{ a.titulo }}</a>
+              <small>{{ a.abertoEm | date: 'dd/MM HH:mm' : fuso }} JST</small>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <section aria-labelledby="t-estacoes">
+      <header>
+        <h2 id="t-estacoes">Estações</h2>
+        <a routerLink="/estacoes">Ver todas</a>
+      </header>
+      <ul class="lista">
+        @for (e of estacoes.estacoes(); track e.id) {
+          <li class="estacao">
+            <strong>{{ e.nome }}</strong>
+            <app-selo-origem [origem]="e.origem" />
+            <small>{{ !e.ativa ? 'Inativa' : !e.monitoraComunicacao ? 'Somente histórico' : e.online ? 'Online' : 'Sem comunicação' }}</small>
+          </li>
+        }
+      </ul>
+    </section>
+  </aside>
+</div>
+
+<section class="temperatura" aria-labelledby="t-temp">
+  <header>
+    <h2 id="t-temp">Temperatura das estações, nos últimos 30 dias</h2>
+    <a routerLink="/temperatura">Abrir temperatura</a>
+  </header>
+  <div class="kpis tres">
+    <app-cartao-kpi icone="device_thermostat" titulo="Temperatura média" [valor]="temperatura.totais()?.temperaturaMedia ?? null" [casas]="2" sufixo="°C" [carregando]="temperatura.carregando()" descricao="Todos os sensores" (abrir)="irPara('/temperatura')" />
+    <app-cartao-kpi icone="dataset" titulo="Leituras" [valor]="temperatura.totais()?.totalLeituras ?? null" [carregando]="temperatura.carregando()" descricao="Inclui leituras simuladas" (abrir)="irPara('/temperatura/dados')" />
+    <app-cartao-kpi icone="meeting_room" titulo="Salas" [valor]="temperatura.totais()?.salasMonitoradas ?? null" [carregando]="temperatura.carregando()" descricao="Com leituras no período" (abrir)="irPara('/temperatura')" />
+  </div>
+</section>
+</div>

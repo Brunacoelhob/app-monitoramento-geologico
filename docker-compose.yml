@@ -1,34 +1,70 @@
-# PROJETO: Pipeline de Dados IoT
-# VERSÃO: 1.0.0
-# AUTOR: Bruna Coelho
-# DESCRIÇÃO: Orquestração da infraestrutura de banco de dados PostgreSQL
-
-version: '3.8'
+# PROJETO: Monitoramento IoT (PostgreSQL + Backend NestJS + Frontend Streamlit)
+# As credenciais vem do arquivo .env (veja .env.example).
+# Somente o backend fala com o banco; o frontend so fala com o backend.
 
 services:
-  # Serviço de Banco de Dados Relacional
   db-iot:
-    image: postgres:latest
+    image: postgres:16-alpine
     container_name: postgres-iot
-    restart: always # Garante que o banco reinicie em caso de falha
+    restart: unless-stopped
     environment:
-      # Credenciais de acesso (Devem coincidir com o main.py)
-      POSTGRES_USER: bruna
-      POSTGRES_PASSWORD: adminadmin
-      POSTGRES_DB: iot_db
+      POSTGRES_USER: ${DB_USER:?defina DB_USER no .env}
+      POSTGRES_PASSWORD: ${DB_PASS:?defina DB_PASS no .env}
+      POSTGRES_DB: ${DB_NAME:-iot_db}
     ports:
-      - "5432:5432" # Porta padrão do PostgreSQL
+      # Somente localhost: o banco nao fica exposto na rede
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     networks:
-      - iot_network
+      - rede_banco
     volumes:
-      # Persistência de dados: mapeia os dados do banco para uma pasta segura
-      - postgres_data:/var/lib/postgresql
+      - iot_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
-# Configuração de Redes e Volumes
+  backend:
+    build: ./backend
+    container_name: backend-iot
+    restart: unless-stopped
+    depends_on:
+      db-iot:
+        condition: service_healthy
+    environment:
+      # Dentro da rede do Docker o banco e acessado pelo nome do servico
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@db-iot:5432/${DB_NAME:-iot_db}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
+      JWT_EXPIRA_EM: ${JWT_EXPIRA_EM:-1h}
+      CORS_ORIGENS: ${CORS_ORIGENS:-http://localhost:8501}
+    volumes:
+      # Avatares e acervo de imagens dos usuarios
+      - iot_uploads:/app/uploads
+    ports:
+      - "127.0.0.1:${PORTA_API:-3000}:3000"
+    networks:
+      - rede_banco
+      - rede_app
+
+  frontend:
+    # Angular servido pelo nginx, que tambem repassa /api para o backend
+    build: ./frontend-angular
+    container_name: frontend-iot
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      # O frontend NAO participa da rede do banco
+      - rede_app
+
 networks:
-  iot_network:
+  rede_banco:
+    driver: bridge
+  rede_app:
     driver: bridge
 
 volumes:
-  postgres_data:
-    driver: local
+  iot_pgdata:
+  iot_uploads:

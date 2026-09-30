@@ -1,0 +1,11 @@
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+mat-form-field {
+  width: 280px;
+  max-width: 100%;
+}

@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>Nova estação</h2>
+
+<form [formGroup]="formulario" (ngSubmit)="salvar()" novalidate>
+  <mat-dialog-content>
+    <div class="grade">
+      <mat-form-field appearance="outline">
+        <mat-label>Código</mat-label>
+        <input matInput formControlName="codigo" placeholder="JP-NAGOYA" required />
+        <mat-hint>Letras maiúsculas, números e hífen</mat-hint>
+        @if (formulario.controls.codigo.invalid && formulario.controls.codigo.touched) {
+          <mat-error>Use de 2 a 30 caracteres: letras maiúsculas, números e hífen.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" required />
+        @if (formulario.controls.nome.invalid && formulario.controls.nome.touched) {
+          <mat-error>Informe o nome da estação.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Latitude</mat-label>
+        <input matInput type="number" step="any" formControlName="latitude" required />
+        @if (formulario.controls.latitude.invalid && formulario.controls.latitude.touched) {
+          <mat-error>Informe um valor entre -90 e 90.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Longitude</mat-label>
+        <input matInput type="number" step="any" formControlName="longitude" required />
+        @if (formulario.controls.longitude.invalid && formulario.controls.longitude.touched) {
+          <mat-error>Informe um valor entre -180 e 180.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Placa tectônica</mat-label>
+        <mat-select formControlName="placa">
+          <mat-option value="">Não informada</mat-option>
+          @for (p of placas; track p.valor) {
+            <mat-option [value]="p.valor">{{ p.rotulo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Origem dos dados</mat-label>
+        <mat-select formControlName="origem">
+          <mat-option value="REAL">Real (sensores de verdade)</mat-option>
+          <mat-option value="SIMULADO">Simulada</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <fieldset>
+      <legend>Sensores</legend>
+      <div class="sensores">
+        @for (s of sensoresDisponiveis; track s.chave) {
+          <mat-checkbox [formControlName]="s.chave">{{ s.rotulo }}</mat-checkbox>
+        }
+      </div>
+    </fieldset>
+
+    @if (erro(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="salvando()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="salvando()">
+      @if (salvando()) { <mat-spinner diameter="20" /> } @else { Criar estação }
+    </button>
+  </mat-dialog-actions>
+</form>

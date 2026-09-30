@@ -1,0 +1,197 @@
+// Fundo com um brilho suave no canto (profundidade, sem imagem)
+.container {
+  height: calc(100vh - var(--altura-acess));
+  background:
+    radial-gradient(900px 380px at 88% -8%, color-mix(in srgb, var(--acento) 11%, transparent), transparent 70%),
+    var(--fundo);
+}
+
+mat-sidenav-content {
+  background: transparent !important;
+}
+
+// ---------- Menu lateral ----------
+.menu {
+  width: 16rem;
+  border: 0;
+  border-right: 1px solid var(--borda);
+  background: var(--superficie);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.4rem 1.25rem 1rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--texto);
+
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 14px;
+    color: #fff;
+    background: var(--degrade-acento);
+    box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--acento) 80%, transparent);
+
+    mat-icon {
+      font-size: 1.35rem;
+      width: 1.35rem;
+      height: 1.35rem;
+    }
+  }
+}
+
+nav {
+  padding: 0.25rem 0.75rem;
+}
+
+// Itens do menu: pilula suave; o ativo ganha cor do acento
+.menu .mat-mdc-nav-list {
+  --mat-list-list-item-leading-icon-color: var(--texto-2);
+  --mat-list-list-item-label-text-color: var(--texto-2);
+  --mat-list-list-item-label-text-weight: 600;
+  --mat-list-list-item-container-shape: 14px;
+  --mat-list-list-item-hover-state-layer-color: var(--superficie-2);
+  --mat-list-list-item-focus-state-layer-color: var(--superficie-2);
+  --mat-list-active-indicator-color: color-mix(in srgb, var(--acento) 13%, transparent);
+  --mat-list-list-item-leading-icon-start-space: 12px;
+  padding: 0;
+}
+
+.menu .mdc-list-item--activated {
+  --mat-list-list-item-leading-icon-color: var(--acento);
+  --mat-list-list-item-label-text-color: var(--acento);
+  --mat-list-list-item-label-text-weight: 800;
+}
+
+// ---------- Barra superior em vidro fosco ----------
+.topo {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  gap: 0.5rem;
+  height: 4rem;
+  background: var(--vidro);
+  backdrop-filter: blur(16px) saturate(1.4);
+  color: var(--texto);
+  border-bottom: 1px solid var(--borda);
+}
+
+.secao {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+// Botao da conta: avatar + nome
+.conta {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.3rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--superficie-2);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--foco);
+  }
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--degrade-acento);
+  box-shadow: 0 0 0 2px var(--superficie), 0 0 0 3px var(--borda-forte);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.usuario {
+  display: flex;
+  flex-direction: column;
+  max-width: 12rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--texto-2);
+  }
+}
+
+.conteudo.larga {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.conteudo {
+  padding: 1.75rem 1.75rem 1.5rem;
+  max-width: 88rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+  outline: none;
+}
+
+// RN-27: aviso permanente de que o sistema nao e oficial
+.aviso-oficial {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  max-width: 88rem;
+  margin: 1rem auto 0;
+  padding: 1rem 1.75rem 1.75rem;
+  box-sizing: border-box;
+  color: var(--texto-2);
+  font-size: 0.875rem;
+
+  p {
+    margin: 0;
+    max-width: 70ch;
+  }
+
+  mat-icon {
+    flex: none;
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .conteudo {
+    padding: 1rem;
+  }
+
+  .usuario,
+  .seta {
+    display: none;
+  }
+}

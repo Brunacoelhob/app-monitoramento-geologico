@@ -1,0 +1,58 @@
+:host {
+  display: inline-block;
+}
+
+.botao {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: var(--raio-campo);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sobre-acento);
+  background: var(--degrade-acento);
+  box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--acento) 70%, transparent);
+  transition: transform 0.15s ease, filter 0.15s ease;
+
+  &:hover:not([disabled]) {
+    transform: translateY(-1px);
+    filter: brightness(1.07);
+  }
+
+  &[disabled] {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--foco);
+    outline-offset: 2px;
+  }
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  ::ng-deep .mdc-circular-progress__determinate-circle,
+  ::ng-deep .mdc-circular-progress__indeterminate-circle-graphic circle {
+    stroke: currentColor;
+  }
+}
+
+.opcao {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.25;
+
+  small {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+}

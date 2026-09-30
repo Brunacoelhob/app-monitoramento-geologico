@@ -1,0 +1,91 @@
+<app-cabecalho-pagina
+  icone="sensors"
+  titulo="Estações"
+  descricao="Sismógrafos, receptores GPS e sensores de temperatura, reais e simulados, e o que cada um está medindo agora."
+/>
+
+<section class="bloco">
+  <header class="cabeca">
+    <h2>Estações cadastradas</h2>
+    @if (ehAdmin()) {
+      <button mat-flat-button (click)="nova()"><mat-icon aria-hidden="true">add</mat-icon> Nova estação</button>
+    }
+  </header>
+
+  <div class="tabela-rolagem">
+    <table>
+      <caption class="so-leitor">Estações</caption>
+      <thead>
+        <tr>
+          <th scope="col">Estação</th>
+          <th scope="col">Origem</th>
+          <th scope="col">Situação</th>
+          <th scope="col">Sensores</th>
+          <th scope="col">Última leitura (JST)</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of estacoes.estacoes(); track e.id) {
+          <tr [class.escolhida]="selecionada()?.id === e.id">
+            <th scope="row"><strong>{{ e.nome }}</strong><br /><small>{{ e.codigo }}</small></th>
+            <td><app-selo-origem [origem]="e.origem" /></td>
+            <td>
+              <span class="situacao" [attr.data-situacao]="situacao(e).texto">
+                <mat-icon aria-hidden="true">{{ situacao(e).icone }}</mat-icon>
+                {{ situacao(e).texto }}
+              </span>
+            </td>
+            <td>{{ tiposDe(e) }}</td>
+            <td>{{ e.ultimaLeitura ? (e.ultimaLeitura | date: 'dd/MM/yyyy HH:mm' : fuso) : 'Nenhuma' }}</td>
+            <td class="acoes">
+              <button mat-stroked-button (click)="ver(e)">Ver leituras</button>
+              @if (ehAdmin()) {
+                <button mat-button (click)="alternar(e)">{{ e.ativa ? 'Desativar' : 'Ativar' }}</button>
+                @if (e.temChave) { <button mat-button (click)="novaChave(e)">Nova chave</button> }
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+@if (selecionada(); as e) {
+  <section class="bloco" aria-live="polite">
+    <header class="cabeca">
+      <h2>Leituras de {{ e.nome }}</h2>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="horas">
+        <mat-label>Intervalo</mat-label>
+        <mat-select [value]="horas()" (selectionChange)="mudarHoras($event.value)">
+          <mat-option [value]="6">Últimas 6 horas</mat-option>
+          <mat-option [value]="24">Últimas 24 horas</mat-option>
+          <mat-option [value]="72">Últimas 72 horas</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </header>
+
+    @if (carregandoSeries()) {
+      <p class="nota">Carregando as leituras…</p>
+    } @else if (series(); as s) {
+      @if (e.origem === 'SIMULADO') {
+        <p class="nota">Estação simulada: estas leituras são geradas pelo sistema.</p>
+      }
+      @if (s.sismografo.length === 0 && s.gps.length === 0 && s.temperatura.length === 0) {
+        <p class="nota">Esta estação não tem leituras neste intervalo.</p>
+      }
+      @if (s.sismografo.length) {
+        <app-grafico titulo="Sismógrafo" descricao="Amplitude do sinal ao longo do tempo. Picos indicam tremores." arquivo="estacao-sismografo" altura="16rem" [opcoes]="opcoesSismografo()" />
+      }
+      @if (s.gps.length) {
+        <app-grafico titulo="GPS" descricao="Deslocamento acumulado da estação, para o leste e para o norte, em milímetros." arquivo="estacao-gps" altura="16rem" [opcoes]="opcoesGps()" />
+      }
+      @if (s.temperatura.length) {
+        <app-grafico titulo="Temperatura" descricao="Sensor interno (tracejado) e externo." arquivo="estacao-temperatura" altura="16rem" [opcoes]="opcoesTemperatura()" />
+      }
+    } @else {
+      <p class="nota erro" role="alert">Não foi possível carregar as leituras desta estação.</p>
+    }
+  </section>
+}

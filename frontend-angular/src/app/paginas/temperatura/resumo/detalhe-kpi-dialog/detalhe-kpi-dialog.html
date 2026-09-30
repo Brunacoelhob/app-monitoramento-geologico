@@ -1,0 +1,53 @@
+@if (conteudo(); as c) {
+  <div class="modal">
+    <header class="cabecalho">
+      <span class="icone"><mat-icon>{{ c.icone }}</mat-icon></span>
+      <div class="titulos">
+        <h2 mat-dialog-title>{{ c.titulo }}</h2>
+        <span class="periodo">Período de {{ periodo }}</span>
+      </div>
+      <button mat-icon-button mat-dialog-close aria-label="Fechar"><mat-icon>close</mat-icon></button>
+    </header>
+
+    <mat-dialog-content>
+      <p class="destaque">{{ c.destaque }} <small>{{ c.unidade }}</small></p>
+
+      <section>
+        <h3>O que é</h3>
+        <p>{{ c.explicacao }}</p>
+      </section>
+
+      <section>
+        <h3>Como é calculado</h3>
+        <p class="calculo"><mat-icon>calculate</mat-icon> {{ c.calculo }}</p>
+      </section>
+
+      @if (c.linhas.length) {
+        <section>
+          <h3>{{ c.titulo_linhas }}</h3>
+          <ul class="linhas">
+            @for (linha of c.linhas; track linha.rotulo) {
+              <li>
+                <div class="linha-texto">
+                  <span>{{ linha.rotulo }}</span>
+                  <strong>{{ linha.texto }}</strong>
+                </div>
+                @if (linha.proporcao !== undefined) {
+                  <div class="trilho">
+                    <div class="barra" [style.width.%]="linha.proporcao * 100" [style.background]="linha.cor"></div>
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <p class="dica"><mat-icon>lightbulb</mat-icon> {{ c.dica }}</p>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-flat-button mat-dialog-close>Entendi</button>
+    </mat-dialog-actions>
+  </div>
+}

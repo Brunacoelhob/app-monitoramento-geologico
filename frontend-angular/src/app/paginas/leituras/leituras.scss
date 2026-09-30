@@ -1,0 +1,62 @@
+.tabela-rolagem {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.numero {
+  text-align: right;
+}
+
+.vazio {
+  padding: 24px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.aviso {
+  margin: 32px 0;
+  color: var(--mat-sys-on-surface-variant);
+
+  &.erro {
+    color: var(--mat-sys-error);
+  }
+}
+
+// Ponto de cor: frio = sensor interno, calor = sensor externo
+.ponto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 50%;
+
+  &.frio {
+    background: var(--frio);
+  }
+
+  &.calor {
+    background: var(--calor);
+  }
+}
+
+.exportar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--borda);
+  box-shadow: var(--realce);
+  border-radius: var(--raio);
+  background: var(--superficie);
+
+  p {
+    margin: 0;
+    color: var(--texto-2);
+  }
+}

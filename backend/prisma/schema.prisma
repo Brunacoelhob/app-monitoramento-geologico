@@ -1,0 +1,262 @@
+// Schema do banco (fonte da verdade da estrutura das tabelas)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Sentido {
+  INTERNO
+  EXTERNO
+}
+
+enum Papel {
+  ADMIN
+  VISUALIZADOR
+}
+
+enum TipoSensor {
+  TEMPERATURA
+  SISMOGRAFO
+  GPS
+}
+
+// REAL = USGS ou dataset; SIMULADO = gerado pelo simulador (sempre marcado na tela)
+enum Origem {
+  REAL
+  SIMULADO
+}
+
+enum SituacaoEvento {
+  AUTOMATICO
+  REVISADO
+  CANCELADO
+}
+
+enum TipoAlerta {
+  SISMO
+  SEM_COMUNICACAO
+}
+
+enum NivelAlerta {
+  ATENCAO
+  ALTO
+  CRITICO
+}
+
+enum EstadoAlerta {
+  ABERTO
+  RECONHECIDO
+  ENCERRADO
+}
+
+model Leitura {
+  id          String   @id
+  sala        String
+  dataLeitura DateTime @map("data_leitura") @db.Timestamp(0)
+  temperatura Decimal  @db.Decimal(5, 1)
+  sentido     Sentido
+
+  // Estacao dona da leitura (as leituras antigas ficam na estacao "legado")
+  estacaoId Int?   @map("estacao_id")
+  origem    Origem @default(REAL)
+
+  estacao Estacao? @relation(fields: [estacaoId], references: [id])
+
+  @@index([dataLeitura])
+  @@index([estacaoId, sentido, dataLeitura])
+  @@map("leituras_temperatura")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  senhaHash String   @map("senha_hash")
+  papel     Papel    @default(VISUALIZADOR)
+  criadoEm  DateTime @default(now()) @map("criado_em")
+
+  // Perfil (preenchido pelo proprio usuario; CPF e celular guardados so com digitos)
+  nome        String?
+  cpf         String?  @unique
+  celular     String?
+  cep         String?
+  logradouro  String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  uf          String?
+
+  // Avatar: nome do arquivo em disco (nunca o caminho) e o tipo detectado
+  avatarArquivo String? @map("avatar_arquivo")
+  avatarMime    String? @map("avatar_mime")
+
+  imagens Imagem[]
+
+  @@map("usuarios")
+}
+
+// Acervo de imagens do usuario. O arquivo fica em disco com nome aleatorio
+// (arquivo); o nome original so serve para exibir e para o download.
+model Imagem {
+  id           Int      @id @default(autoincrement())
+  usuarioId    Int      @map("usuario_id")
+  nomeOriginal String   @map("nome_original")
+  arquivo      String   @unique
+  mime         String
+  tamanho      Int
+  criadaEm     DateTime @default(now()) @map("criada_em")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("imagens")
+}
+
+// ---------------------------------------------------------------------------
+// Modulo de sismos (regras em docs/regras-de-negocio-sismos.md)
+// ---------------------------------------------------------------------------
+
+model Estacao {
+  id        Int     @id @default(autoincrement())
+  codigo    String  @unique
+  nome      String
+  latitude  Float?
+  longitude Float?
+  // Placa tectonica (so para a simulacao do GPS): PACIFICA, FILIPINAS, OKHOTSK, AMUR
+  placa     String?
+  origem    Origem  @default(REAL)
+  ativa     Boolean @default(true)
+  // false para a estacao "legado": ela tem so leituras antigas, entao nao gera alerta de silencio
+  monitoraComunicacao Boolean @default(true) @map("monitora_comunicacao")
+  // Chave de API da estacao, guardada so como hash (sha256)
+  chaveHash String?  @unique @map("chave_hash")
+  criadaEm  DateTime @default(now()) @map("criada_em")
+
+  sensores            Sensor[]
+  leiturasTemperatura Leitura[]
+  alertas             Alerta[]
+
+  @@map("estacoes")
+}
+
+model Sensor {
+  id        Int        @id @default(autoincrement())
+  estacaoId Int        @map("estacao_id")
+  tipo      TipoSensor
+  nome      String
+  // So para TEMPERATURA (interno ou externo)
+  sentido   Sentido?
+  ativo     Boolean    @default(true)
+
+  estacao            Estacao             @relation(fields: [estacaoId], references: [id], onDelete: Cascade)
+  leiturasSismografo LeituraSismografo[]
+  leiturasGps        LeituraGps[]
+
+  @@index([estacaoId])
+  @@map("sensores")
+}
+
+model LeituraSismografo {
+  id        Int      @id @default(autoincrement())
+  sensorId  Int      @map("sensor_id")
+  instante  DateTime @db.Timestamptz(3)
+  // Amplitude do sinal em mm/s
+  amplitude Float
+  origem    Origem
+
+  sensor Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+
+  @@unique([sensorId, instante])
+  @@index([instante])
+  @@map("leituras_sismografo")
+}
+
+model LeituraGps {
+  id                  Int      @id @default(autoincrement())
+  sensorId            Int      @map("sensor_id")
+  instante            DateTime @db.Timestamptz(3)
+  latitude            Float
+  longitude           Float
+  altitudeM           Float?   @map("altitude_m")
+  // Deslocamento acumulado desde o inicio da serie, em mm
+  deslocamentoLesteMm Float?   @map("deslocamento_leste_mm")
+  deslocamentoNorteMm Float?   @map("deslocamento_norte_mm")
+  origem              Origem
+
+  sensor Sensor @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+
+  @@unique([sensorId, instante])
+  @@index([instante])
+  @@map("leituras_gps")
+}
+
+model EventoSismico {
+  id               Int            @id @default(autoincrement())
+  // Id do evento na fonte (USGS): reimportar nunca duplica
+  idExterno        String         @unique @map("id_externo")
+  magnitude        Float
+  profundidadeKm   Float          @map("profundidade_km")
+  latitude         Float
+  longitude        Float
+  local            String
+  ocorridoEm       DateTime       @map("ocorrido_em") @db.Timestamptz(3)
+  origem           Origem         @default(REAL)
+  situacao         SituacaoEvento @default(AUTOMATICO)
+  atualizadoUsgsEm DateTime?      @map("atualizado_usgs_em") @db.Timestamptz(3)
+  // Se for replica de um alerta aberto, aponta para ele (nao gera alerta proprio)
+  alertaReplicaId  Int?           @map("alerta_replica_id")
+
+  alerta    Alerta? @relation("AlertaEvento")
+  replicaDe Alerta? @relation("Replicas", fields: [alertaReplicaId], references: [id])
+
+  @@index([ocorridoEm])
+  @@index([magnitude])
+  @@map("eventos_sismicos")
+}
+
+model Alerta {
+  id                   Int          @id @default(autoincrement())
+  tipo                 TipoAlerta
+  nivel                NivelAlerta
+  nivelAnterior        NivelAlerta? @map("nivel_anterior")
+  estado               EstadoAlerta @default(ABERTO)
+  titulo               String
+  eventoId             Int?         @unique @map("evento_id")
+  estacaoId            Int?         @map("estacao_id")
+  abertoEm             DateTime     @default(now()) @map("aberto_em") @db.Timestamptz(3)
+  reconhecidoEm        DateTime?    @map("reconhecido_em") @db.Timestamptz(3)
+  reconhecidoPorId     Int?         @map("reconhecido_por_id")
+  encerradoEm          DateTime?    @map("encerrado_em") @db.Timestamptz(3)
+  encerradoPorId       Int?         @map("encerrado_por_id")
+  motivoEncerramento   String?      @map("motivo_encerramento")
+  encerradoAutomatico  Boolean      @default(false) @map("encerrado_automatico")
+
+  evento    EventoSismico?  @relation("AlertaEvento", fields: [eventoId], references: [id])
+  estacao   Estacao?        @relation(fields: [estacaoId], references: [id])
+  replicas  EventoSismico[] @relation("Replicas")
+  historico AlertaHistorico[]
+
+  @@index([estado, nivel])
+  @@index([abertoEm])
+  @@map("alertas")
+}
+
+// Quem fez o que e quando em cada alerta (RN-19)
+model AlertaHistorico {
+  id        Int      @id @default(autoincrement())
+  alertaId  Int      @map("alerta_id")
+  acao      String
+  detalhes  String?
+  usuarioId Int?     @map("usuario_id")
+  criadoEm  DateTime @default(now()) @map("criado_em") @db.Timestamptz(3)
+
+  alerta Alerta @relation(fields: [alertaId], references: [id], onDelete: Cascade)
+
+  @@index([alertaId])
+  @@map("alerta_historico")
+}

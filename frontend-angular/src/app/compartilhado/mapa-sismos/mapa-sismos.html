@@ -1,0 +1,30 @@
+<div
+  #mapa
+  class="mapa"
+  [style.height]="altura()"
+  role="region"
+  aria-label="Mapa-múndi com os epicentros dos sismos, as placas tectônicas e as estações. Clique em uma região para ver só os dados dela. Os mesmos dados estão na tabela da aba Dados."
+></div>
+
+@if (!compacto()) {
+  <!-- Mesma escolha do mapa, por botoes: funciona com teclado e leitor de tela -->
+  <nav class="regioes" aria-label="Escolher a região">
+    <button type="button" class="chip" [attr.aria-pressed]="regiao() === null" (click)="escolherRegiao.emit(null)">Mundo todo</button>
+    @for (r of regioes(); track r.codigo) {
+      <button type="button" class="chip" [attr.aria-pressed]="regiao() === r.codigo" (click)="escolherRegiao.emit(regiao() === r.codigo ? null : r.codigo)">
+        {{ r.nome }} <span class="n">{{ r.eventos }}</span>
+      </button>
+    }
+  </nav>
+
+  <ul class="legenda" aria-label="Legenda do mapa">
+    <li><span class="ponto" [style.background]="cores().textoSecundario"></span> Registro (menor que M4,5)</li>
+    <li><span class="ponto" [style.background]="cores().atencao"></span> Atenção (M4,5 a 5,4)</li>
+    <li><span class="ponto" [style.background]="cores().alto"></span> Alto (M5,5 a 6,4)</li>
+    <li><span class="ponto" [style.background]="cores().critico"></span> Crítico (M6,5 ou mais)</li>
+    <li><span class="quadrado"></span> Estação (tracejado: simulada)</li>
+    <li><span class="traco subducao" [style.borderColor]="cores().atencao"></span> Subducção (uma placa mergulha sob a outra)</li>
+    <li><span class="traco fino" [style.borderColor]="cores().textoSecundario"></span> Outro limite entre placas</li>
+  </ul>
+  <p class="nota">O tamanho do círculo cresce com a magnitude. Clique em uma região ou em um sismo para ver os detalhes.</p>
+}

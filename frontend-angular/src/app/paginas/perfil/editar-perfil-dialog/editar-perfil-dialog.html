@@ -1,0 +1,125 @@
+<h2 mat-dialog-title>Editar perfil</h2>
+
+<form [formGroup]="formulario" (ngSubmit)="salvar()" novalidate>
+  <mat-dialog-content>
+    <p class="legenda">Campos com <span aria-hidden="true">*</span> são obrigatórios.</p>
+
+    <h3><mat-icon>person</mat-icon> Dados pessoais</h3>
+    <div class="grade">
+      <mat-form-field appearance="outline" class="cheio">
+        <mat-label>Nome completo</mat-label>
+        <input matInput formControlName="nome" autocomplete="name" required />
+        @if (formulario.controls.nome.hasError('required')) {
+          <mat-error>Informe o nome.</mat-error>
+        } @else if (formulario.controls.nome.hasError('minlength')) {
+          <mat-error>Use pelo menos 3 letras.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>CPF</mat-label>
+        <input matInput formControlName="cpf" appMascara="cpf" placeholder="000.000.000-00" required />
+        @if (formulario.controls.cpf.hasError('required')) {
+          <mat-error>Informe o CPF.</mat-error>
+        } @else if (formulario.controls.cpf.hasError('cpf')) {
+          <mat-error>CPF inválido.</mat-error>
+        } @else if (formulario.controls.cpf.hasError('duplicado')) {
+          <mat-error>Este CPF já está em outra conta.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Celular</mat-label>
+        <input matInput formControlName="celular" appMascara="celular" placeholder="(00) 00000-0000"
+          autocomplete="tel-national" required />
+        @if (formulario.controls.celular.hasError('required')) {
+          <mat-error>Informe o celular.</mat-error>
+        } @else if (formulario.controls.celular.hasError('celular')) {
+          <mat-error>Use DDD + 9 dígitos.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <h3><mat-icon>home</mat-icon> Endereço</h3>
+    <div class="grade">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>CEP</mat-label>
+        <input matInput formControlName="cep" appMascara="cep" placeholder="00000-000"
+          autocomplete="postal-code" required />
+        @if (buscandoCep()) {
+          <mat-spinner matSuffix diameter="20" />
+        }
+        <mat-hint [class.hint-erro]="erroCep() !== null">{{ dicaCep() }}</mat-hint>
+        @if (formulario.controls.cep.hasError('required')) {
+          <mat-error>Informe o CEP.</mat-error>
+        } @else if (formulario.controls.cep.hasError('cep')) {
+          <mat-error>O CEP tem 8 dígitos.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="largo">
+        <mat-label>Logradouro</mat-label>
+        <input matInput formControlName="logradouro" autocomplete="address-line1" required />
+        @if (formulario.controls.logradouro.hasError('required')) {
+          <mat-error>Informe o logradouro.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Número</mat-label>
+        <input matInput #numero formControlName="numero" autocomplete="address-line2" required />
+        @if (formulario.controls.numero.hasError('required')) {
+          <mat-error>Informe o número.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Complemento</mat-label>
+        <input matInput formControlName="complemento" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Bairro</mat-label>
+        <input matInput formControlName="bairro" required />
+        @if (formulario.controls.bairro.hasError('required')) {
+          <mat-error>Informe o bairro.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Cidade</mat-label>
+        <input matInput formControlName="cidade" autocomplete="address-level2" required />
+        @if (formulario.controls.cidade.hasError('required')) {
+          <mat-error>Informe a cidade.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>UF</mat-label>
+        <mat-select formControlName="uf" required>
+          @for (uf of ufs; track uf) {
+            <mat-option [value]="uf">{{ uf }}</mat-option>
+          }
+        </mat-select>
+        @if (formulario.controls.uf.hasError('required')) {
+          <mat-error>Escolha a UF.</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    @if (erroServidor(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="salvando()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="salvando()">
+      @if (salvando()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Salvar alterações
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

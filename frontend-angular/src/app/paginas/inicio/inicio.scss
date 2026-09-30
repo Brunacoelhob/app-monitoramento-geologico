@@ -1,0 +1,102 @@
+:host {
+  display: block;
+}
+
+// Conteudo abaixo do hero: coluna central com a largura e o respiro das outras paginas
+.miolo {
+  max-width: 88rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+}
+
+.sismos,
+.lateral {
+  min-width: 0;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  &.tres {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-width: 0;
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--borda);
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--borda);
+  }
+
+  small {
+    margin-left: auto;
+    color: var(--texto-2);
+  }
+}
+
+.vazio,
+.nota {
+  color: var(--texto-2);
+  font-size: 0.9375rem;
+}
+
+.temperatura {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 1100px) {
+  .grade {
+    grid-template-columns: 1fr;
+  }
+
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .kpis,
+  .kpis.tres {
+    grid-template-columns: 1fr;
+  }
+}

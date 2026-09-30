@@ -1,0 +1,98 @@
+:host {
+  display: block;
+}
+
+.bloco {
+  margin-top: 1.5rem;
+}
+
+.cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--borda);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    color: var(--texto-2);
+    font-size: 0.875rem;
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  tr.escolhida {
+    background: var(--superficie-2);
+  }
+
+  small {
+    color: var(--texto-2);
+    font-weight: 400;
+  }
+}
+
+.acoes {
+  white-space: nowrap;
+}
+
+.situacao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  &[data-situacao='Sem comunicação'] {
+    color: var(--sev-alto);
+  }
+
+  &[data-situacao='Inativa'],
+  &[data-situacao='Somente histórico'] {
+    color: var(--texto-2);
+  }
+}
+
+.horas {
+  width: 13rem;
+}
+
+.nota {
+  color: var(--texto-2);
+
+  &.erro {
+    color: var(--mat-sys-error);
+  }
+}

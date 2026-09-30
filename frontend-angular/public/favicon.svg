@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Termometro sobre a cor primaria do tema (#005cbb) -->
+  <rect width="64" height="64" rx="14" fill="#005cbb"/>
+  <rect x="26" y="9" width="12" height="34" rx="6" fill="#fff"/>
+  <circle cx="32" cy="46" r="11" fill="#fff"/>
+  <rect x="29.5" y="23" width="5" height="24" rx="2.5" fill="#ff5a3c"/>
+  <circle cx="32" cy="46" r="6.5" fill="#ff5a3c"/>
+  <g stroke="#fff" stroke-width="3" stroke-linecap="round">
+    <line x1="43" y1="16" x2="49" y2="16"/>
+    <line x1="43" y1="23" x2="49" y2="23"/>
+    <line x1="43" y1="30" x2="49" y2="30"/>
+  </g>
+</svg>

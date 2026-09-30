@@ -1,0 +1,28 @@
+<button
+  type="button"
+  class="botao"
+  [class.destaque]="variante() === 'destaque'"
+  [matMenuTriggerFor]="menu"
+  [disabled]="!consulta() || gerando() !== null"
+>
+  @if (gerando()) {
+    <mat-spinner diameter="20" />
+    <span>Preparando {{ gerando() }}…</span>
+  } @else {
+    <mat-icon>download</mat-icon>
+    <span>Baixar relatório</span>
+    <mat-icon class="seta">expand_more</mat-icon>
+  }
+</button>
+
+<mat-menu #menu="matMenu" xPosition="before">
+  @for (item of formatos; track item.formato) {
+    <button mat-menu-item (click)="baixar(item.formato)">
+      <mat-icon>{{ item.icone }}</mat-icon>
+      <span class="opcao">
+        <strong>{{ item.rotulo }}</strong>
+        <small>{{ item.detalhe }}</small>
+      </span>
+    </button>
+  }
+</mat-menu>

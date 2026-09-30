@@ -1,0 +1,495 @@
+@use '@angular/material' as mat;
+
+// ===========================================================================
+// Sistema de design: dashboard moderno (docs/briefing-de-design-frontend.md)
+// Cantos generosos, superficies em camadas com sombra suave, acento em degrade,
+// Manrope em tudo. O AcessibilidadeServico troca os atributos data-tema,
+// data-daltonismo, data-fonte e data-movimento no <html>.
+// ===========================================================================
+
+html {
+  // Tema claro
+  --fundo: #f4f6fb;
+  --superficie: #ffffff;
+  --superficie-2: #eef1f7;
+  --borda: #e7ebf3;
+  --borda-forte: #d5dbe8;
+  --texto: #0f172a;
+  --texto-2: #5b6478;
+  --acento: #3b5bdb;
+  --acento-2: #7c4dff;
+  --sobre-acento: #ffffff;
+  --foco: #3b5bdb;
+  --degrade-acento: linear-gradient(135deg, var(--acento), var(--acento-2));
+  --realce: 0 1px 2px rgba(15, 23, 42, 0.05), 0 14px 32px -18px rgba(15, 23, 42, 0.2);
+  --vidro: rgba(255, 255, 255, 0.72);
+
+  // Dados: frio = sensor interno, calor = sensor externo
+  --frio: #0891b2;
+  --calor: #ea580c;
+  // Severidade dos alertas (sempre acompanhada de icone e texto)
+  --sev-atencao: #d97706;
+  --sev-alto: #ea580c;
+  --sev-critico: #dc2626;
+
+  // Geologia: estratos usados em detalhes pontuais
+  --estrato-1: #e7d8b6;
+  --estrato-2: #d29b62;
+  --estrato-3: #b0684f;
+  --estrato-4: #6b5a52;
+  --escala-termica: linear-gradient(90deg, #38bdf8 0%, #a3c4a1 28%, #f2d06b 52%, #f08a4b 76%, #c2410c 100%);
+
+  --fonte-titulo: 'Manrope', system-ui, 'Segoe UI', sans-serif;
+  --fonte-texto: 'Manrope', system-ui, 'Segoe UI', sans-serif;
+
+  --raio: 20px; // cartoes e paineis
+  --raio-campo: 12px; // botoes e campos
+  --altura-acess: 56px; // barra de acessibilidade fixa no topo (o componente atualiza com a altura real)
+
+  color-scheme: light;
+}
+
+html[data-tema='escuro'] {
+  --fundo: #0a0f1a;
+  --superficie: #111827;
+  --superficie-2: #182033;
+  --borda: #1f2a3f;
+  --borda-forte: #2b3853;
+  --texto: #e8edf7;
+  --texto-2: #93a0ba;
+  --acento: #7c9cff;
+  --acento-2: #a78bfa;
+  --sobre-acento: #0a0f1a;
+  --foco: #9db4ff;
+  --realce: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 20px 44px -24px rgba(0, 0, 0, 0.75);
+  --vidro: rgba(17, 24, 39, 0.72);
+  --frio: #38bdf8;
+  --calor: #fb923c;
+  --sev-atencao: #fbbf24;
+  --sev-alto: #fb923c;
+  --sev-critico: #f87171;
+  --estrato-1: #8c7f66;
+  --estrato-2: #9b7a52;
+  --estrato-3: #85574a;
+  --estrato-4: #4d423f;
+  color-scheme: dark;
+}
+
+html[data-tema='contraste'] {
+  --fundo: #000000;
+  --superficie: #000000;
+  --superficie-2: #141414;
+  --borda: #ffffff;
+  --borda-forte: #ffffff;
+  --texto: #ffffff;
+  --texto-2: #ededed;
+  --acento: #ffe600;
+  --acento-2: #ffe600;
+  --sobre-acento: #000000;
+  --foco: #ffe600;
+  --degrade-acento: var(--acento);
+  --realce: none;
+  --vidro: #000000;
+  --frio: #5cc8ff;
+  --calor: #ffb000;
+  --sev-atencao: #ffd400;
+  --sev-alto: #ff8a00;
+  --sev-critico: #ff5c5c;
+  --estrato-1: #ffffff;
+  --estrato-2: #d6d6d6;
+  --estrato-3: #a8a8a8;
+  --estrato-4: #7a7a7a;
+  color-scheme: dark;
+}
+
+// Daltonismo: paletas de dados (Okabe-Ito e IBM), independentes do tema
+html[data-daltonismo='protanopia'],
+html[data-daltonismo='deuteranopia'] {
+  --frio: #0072b2;
+  --calor: #e69f00;
+  --sev-atencao: #f0e442;
+  --sev-alto: #e69f00;
+  --sev-critico: #cc79a7;
+}
+
+html[data-daltonismo='tritanopia'] {
+  --frio: #008b8b;
+  --calor: #d7263d;
+  --sev-atencao: #ffb000;
+  --sev-alto: #fe6100;
+  --sev-critico: #dc267f;
+}
+
+// Fonte de leitura alternativa (dislexia): OpenDyslexic ou Verdana, com mais espaco
+// entre letras, palavras e linhas
+html[data-fonte='opendyslexic'] {
+  --fonte-titulo: 'OpenDyslexic', 'Manrope', sans-serif;
+  --fonte-texto: 'OpenDyslexic', 'Manrope', sans-serif;
+
+  body {
+    letter-spacing: 0.04em;
+    word-spacing: 0.12em;
+    line-height: 1.8;
+  }
+}
+
+html[data-fonte='verdana'] {
+  --fonte-titulo: Verdana, Geneva, 'DejaVu Sans', sans-serif;
+  --fonte-texto: Verdana, Geneva, 'DejaVu Sans', sans-serif;
+
+  body {
+    letter-spacing: 0.02em;
+    word-spacing: 0.1em;
+    line-height: 1.8;
+  }
+}
+
+// Reduzir animacoes (tambem ligado sozinho pelo "reduzir movimento" do sistema)
+html[data-movimento='reduzido'] {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// ---------- Tema Material 3 ligado aos tokens ----------
+html {
+  @include mat.theme((
+    color: mat.$azure-palette,
+    typography: (
+      plain-family: ('Manrope', sans-serif),
+      brand-family: ('Manrope', sans-serif),
+      bold-weight: 700,
+      medium-weight: 600,
+      regular-weight: 400,
+    ),
+    density: 0
+  ));
+
+  --mat-sys-surface: var(--fundo);
+  --mat-sys-background: var(--fundo);
+  --mat-sys-surface-container-lowest: var(--superficie);
+  --mat-sys-surface-container-low: var(--superficie);
+  --mat-sys-surface-container: var(--superficie-2);
+  --mat-sys-surface-container-high: var(--superficie-2);
+  --mat-sys-surface-container-highest: var(--borda);
+  --mat-sys-on-surface: var(--texto);
+  --mat-sys-on-surface-variant: var(--texto-2);
+  --mat-sys-outline: var(--texto-2);
+  --mat-sys-outline-variant: var(--borda);
+  --mat-sys-primary: var(--acento);
+  --mat-sys-on-primary: var(--sobre-acento);
+  --mat-sys-secondary-container: color-mix(in srgb, var(--acento) 14%, transparent);
+  --mat-sys-on-secondary-container: var(--texto);
+
+  // Cantos generosos
+  --mat-sys-corner-extra-small: 8px;
+  --mat-sys-corner-small: 10px;
+  --mat-sys-corner-medium: 14px;
+  --mat-sys-corner-large: 18px;
+  --mat-sys-corner-extra-large: 24px;
+
+  // Botoes
+  --mat-button-filled-container-shape: var(--raio-campo);
+  --mat-button-outlined-container-shape: var(--raio-campo);
+  --mat-button-text-container-shape: var(--raio-campo);
+  --mat-button-filled-container-color: var(--acento);
+  --mat-button-filled-label-text-color: var(--sobre-acento);
+  --mat-button-outlined-label-text-color: var(--texto);
+  --mat-button-outlined-outline-color: var(--borda-forte);
+  --mat-button-text-label-text-color: var(--acento);
+  --mat-button-filled-label-text-weight: 700;
+  --mat-button-outlined-label-text-weight: 600;
+
+  // Campos: fundo suave, contorno quase invisivel e anel de foco em acento
+  --mat-form-field-outlined-outline-color: transparent;
+  --mat-form-field-outlined-hover-outline-color: var(--borda-forte);
+  --mat-form-field-outlined-focus-outline-color: var(--acento);
+  --mat-form-field-outlined-outline-width: 1px;
+  --mat-form-field-outlined-hover-outline-width: 1px;
+  --mat-form-field-outlined-focus-outline-width: 2px;
+  --mat-form-field-outlined-label-text-color: var(--texto-2);
+  --mat-form-field-outlined-input-text-color: var(--texto);
+  --mdc-outlined-text-field-container-shape: var(--raio-campo);
+  --mdc-outlined-text-field-outline-color: transparent;
+
+  // Grupos de botoes, abas, tabelas, dialogos e menus
+  --mat-button-toggle-divider-color: var(--borda);
+  --mat-button-toggle-background-color: transparent;
+  --mat-button-toggle-text-color: var(--texto-2);
+  --mat-button-toggle-selected-state-background-color: color-mix(in srgb, var(--acento) 14%, transparent);
+  --mat-button-toggle-selected-state-text-color: var(--texto);
+  --mat-table-background-color: transparent;
+  --mat-table-header-headline-color: var(--texto-2);
+  --mat-table-header-headline-weight: 700;
+  --mat-table-header-headline-size: 0.8125rem;
+  --mat-table-row-item-label-text-color: var(--texto);
+  --mat-table-row-item-outline-color: var(--borda);
+  --mat-table-footer-supporting-text-color: var(--texto-2);
+  --mat-paginator-container-background-color: transparent;
+  --mat-dialog-container-shape: 24px;
+  --mat-dialog-container-color: var(--superficie);
+  --mat-menu-container-shape: 16px;
+  --mat-menu-container-color: var(--superficie);
+  --mat-select-panel-background-color: var(--superficie);
+  --mat-snack-bar-container-shape: 14px;
+  --mat-progress-bar-active-indicator-color: var(--acento);
+  --mat-tab-header-divider-color: transparent;
+}
+
+// As familias dos tokens do Material seguem a fonte escolhida (dislexia troca tudo)
+html {
+  @each $papel in (display, headline, title, body, label) {
+    @each $tamanho in (large, medium, small) {
+      --mat-sys-#{$papel}-#{$tamanho}-font: var(--fonte-texto);
+    }
+  }
+}
+
+// ---------- Base ----------
+html {
+  font-size: 100%; // o AcessibilidadeServico muda (87,5% a 150%)
+}
+
+html, body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  padding-top: var(--altura-acess);
+  font-family: var(--fonte-texto);
+  font-size: 1rem;
+  line-height: 1.6;
+  background: var(--fundo);
+  color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--fonte-titulo);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+h2 {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+a {
+  color: var(--acento);
+  text-underline-offset: 3px;
+}
+
+// Foco sempre visivel
+:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+// Numeros de medicao alinhados em coluna
+.numero,
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+// Texto so para leitor de tela
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Espaco livre em barras de ferramentas
+.espacador {
+  flex: 1 1 auto;
+}
+
+// Icones (fonte hospedada no projeto)
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+// ---------- Componentes do Material com cara atual ----------
+
+// Botao principal: degrade do acento e leve brilho
+.mat-mdc-unelevated-button.mat-mdc-button-base:not(:disabled) {
+  background-image: var(--degrade-acento);
+  box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--acento) 70%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+  }
+}
+
+// Campos com fundo suave
+.mat-mdc-form-field.mat-form-field-appearance-outline .mdc-text-field--outlined {
+  background: var(--superficie-2);
+  border-radius: var(--raio-campo);
+}
+
+.mat-mdc-form-field-focus-overlay {
+  display: none;
+}
+
+// Grupo de botoes (Interno | Externo) em pilula
+.mat-button-toggle-group {
+  border-radius: 999px !important;
+  border-color: var(--borda-forte) !important;
+  background: var(--superficie);
+}
+
+// Lista de opcoes e menus
+.mat-mdc-select-panel,
+.mat-mdc-menu-panel {
+  border: 1px solid var(--borda);
+  box-shadow: var(--realce) !important;
+}
+
+// Abas em "trilho": a ativa vira uma pilula branca elevada
+.abas.mat-mdc-tab-nav-bar {
+  --mat-tab-header-divider-height: 0;
+  --mat-tab-header-active-indicator-height: 0;
+  --mat-tab-header-inactive-indicator-height: 0;
+  display: inline-flex;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: var(--superficie-2);
+
+  .mat-mdc-tab-link-container,
+  .mat-mdc-tab-links {
+    border: 0;
+  }
+
+  .mdc-tab {
+    height: 2.4rem;
+    min-width: 0;
+    padding: 0 1.2rem;
+    border-radius: 999px;
+    opacity: 1;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mdc-tab .mdc-tab__text-label {
+    color: var(--texto-2);
+    font-weight: 600;
+  }
+
+  .mdc-tab--active {
+    background: var(--superficie);
+    box-shadow: var(--realce);
+
+    .mdc-tab__text-label {
+      color: var(--texto);
+      font-weight: 800;
+    }
+  }
+
+  .mdc-tab-indicator {
+    display: none;
+  }
+}
+
+// Tabelas: cabecalho discreto, linhas suaves e destaque ao passar o mouse
+.mat-mdc-table {
+  .mat-mdc-header-row {
+    height: 3rem;
+  }
+
+  .mat-mdc-row {
+    height: 3.4rem;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--superficie-2);
+    }
+  }
+
+  .mat-mdc-cell,
+  .mat-mdc-header-cell {
+    border-bottom-color: var(--borda);
+  }
+}
+
+// Mapa (Leaflet) nos temas escuro e de contraste
+html[data-tema='escuro'] .leaflet-container,
+html[data-tema='contraste'] .leaflet-container {
+  background: #0b1219;
+}
+
+.leaflet-container {
+  font-family: var(--fonte-texto);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--superficie);
+  color: var(--texto);
+  border-radius: 14px;
+}
+
+
+// Botao flutuante do VLibras: canto inferior direito, fora do conteudo
+[vw-access-button] .access-button,
+div[vw-access-button] {
+  top: auto !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  left: auto !important;
+  transform: scale(0.85);
+  transform-origin: bottom right;
+}
+
+div[vw].enabled,
+div[vw] {
+  top: auto !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  left: auto !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+// Botao do VLibras (criado pelo proprio script): canto inferior direito
+#vlibras-access-wrapper {
+  top: auto !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  left: auto !important;
+}
+
+div[vw] [vw-access-button],
+div[vw-access-button].active {
+  position: fixed !important;
+  top: auto !important;
+  bottom: 1rem !important;
+  right: 1rem !important;
+  left: auto !important;
+  z-index: 40;
+}

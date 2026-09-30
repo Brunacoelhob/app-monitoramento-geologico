@@ -1,0 +1,74 @@
+<div class="exportar">
+  <p>Baixe os sismos e os alertas deste período, com os mesmos filtros.</p>
+  <app-botao-relatorio modulo="sismos" [consulta]="filtros.consulta()" />
+</div>
+
+@if (carregando()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Carregando os sismos" />
+}
+
+@if (erro()) {
+  <p class="aviso erro" role="alert">Não foi possível carregar os dados. Tente novamente em instantes.</p>
+} @else {
+  <div class="tabela-rolagem">
+    <table mat-table [dataSource]="itens()">
+      <caption class="so-leitor">Sismos do período</caption>
+
+      <ng-container matColumnDef="ocorridoEm">
+        <th mat-header-cell *matHeaderCellDef>Data e hora (JST)</th>
+        <td mat-cell *matCellDef="let e">{{ e.ocorridoEm | date: 'dd/MM/yyyy HH:mm' : fuso }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="magnitude">
+        <th mat-header-cell *matHeaderCellDef>Magnitude</th>
+        <td mat-cell *matCellDef="let e">
+          <strong class="numero">M{{ e.magnitude | number: '1.1-1' }}</strong>
+          <app-selo-nivel [nivel]="nivelDe(e.magnitude)" />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="profundidadeKm">
+        <th mat-header-cell *matHeaderCellDef class="numero-col">Profundidade (km)</th>
+        <td mat-cell *matCellDef="let e" class="numero-col">{{ e.profundidadeKm | number: '1.1-1' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="local">
+        <th mat-header-cell *matHeaderCellDef>Local</th>
+        <td mat-cell *matCellDef="let e">{{ e.local }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="origem">
+        <th mat-header-cell *matHeaderCellDef>Origem</th>
+        <td mat-cell *matCellDef="let e"><app-selo-origem [origem]="e.origem" /></td>
+      </ng-container>
+
+      <ng-container matColumnDef="alerta">
+        <th mat-header-cell *matHeaderCellDef>Alerta</th>
+        <td mat-cell *matCellDef="let e">
+          @if (e.alertaId) {
+            <a [routerLink]="['/alertas', e.alertaId]">Ver alerta</a>
+          } @else if (e.replicaDoAlertaId) {
+            <a [routerLink]="['/alertas', e.replicaDoAlertaId]">Réplica de outro alerta</a>
+          } @else {
+            <span class="sem">Sem alerta</span>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+      <tr mat-row *matRowDef="let linha; columns: colunas"></tr>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell vazio" [attr.colspan]="colunas.length">Nenhum sismo neste período. Escolha outras datas no calendário.</td>
+      </tr>
+    </table>
+  </div>
+
+  <mat-paginator
+    [length]="total()"
+    [pageIndex]="indicePagina()"
+    [pageSize]="tamanhoPagina()"
+    [pageSizeOptions]="[25, 50, 100]"
+    (page)="mudouPagina($event)"
+    showFirstLastButtons
+  />
+}

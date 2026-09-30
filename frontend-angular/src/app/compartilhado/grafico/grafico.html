@@ -1,0 +1,26 @@
+<section class="bloco">
+  <header class="cabeca">
+    <div>
+      <h2>{{ titulo() }}</h2>
+      @if (descricao()) {
+        <p>{{ descricao() }}</p>
+      }
+    </div>
+    <button mat-stroked-button type="button" [disabled]="!pronto()" (click)="baixarImagem()">
+      <mat-icon aria-hidden="true">image</mat-icon>
+      Baixar imagem
+    </button>
+  </header>
+
+  <div
+    echarts
+    class="grafico"
+    role="img"
+    [attr.aria-label]="titulo() + '. ' + descricao()"
+    [style.height]="altura()"
+    [options]="opcoes()"
+    (chartInit)="aoIniciar($event)"
+  ></div>
+
+  <ng-content />
+</section>

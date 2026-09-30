@@ -1,0 +1,59 @@
+<div class="exportar">
+  <p>Baixe os sismos e os alertas deste período, com os mesmos filtros.</p>
+  <app-botao-relatorio modulo="sismos" [consulta]="filtros.consulta()" />
+</div>
+
+@if (dados.erro()) {
+  <p class="aviso erro" role="alert">Não foi possível carregar os dados. Tente novamente em instantes.</p>
+} @else if (semDados()) {
+  <p class="aviso">Nenhum sismo neste período. Escolha outras datas no calendário.</p>
+} @else {
+  <app-grafico
+    titulo="Sismos por dia"
+    descricao="Barras: quantos sismos em cada dia. Linha tracejada: a maior magnitude do dia."
+    arquivo="sismos-por-dia"
+    [opcoes]="opcoesPorDia()"
+  >
+    <details class="tabela">
+      <summary>Ver os dados deste gráfico em tabela</summary>
+      <table>
+        <caption class="so-leitor">Sismos por dia</caption>
+        <thead><tr><th scope="col">Dia</th><th scope="col">Sismos</th><th scope="col">Maior magnitude</th></tr></thead>
+        <tbody>
+          @for (d of dados.serieDiaria(); track d.dia) {
+            <tr><th scope="row">{{ dia(d.dia) }}</th><td class="numero">{{ d.eventos }}</td><td class="numero">{{ d.maiorMagnitude.toFixed(1) }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </details>
+  </app-grafico>
+
+  <app-grafico
+    titulo="Magnitude de cada sismo"
+    descricao="Cada ponto é um sismo. O tamanho e a forma mostram a magnitude e o nível; passe o mouse para ver o local."
+    arquivo="sismos-magnitude"
+    altura="26rem"
+    [opcoes]="opcoesMagnitude()"
+  />
+
+  <app-grafico
+    titulo="Sismos por nível"
+    descricao="Quantos sismos do período ficam em cada nível de magnitude."
+    arquivo="sismos-por-nivel"
+    altura="16rem"
+    [opcoes]="opcoesNivel()"
+  >
+    <details class="tabela">
+      <summary>Ver os dados deste gráfico em tabela</summary>
+      <table>
+        <caption class="so-leitor">Sismos por nível</caption>
+        <thead><tr><th scope="col">Nível</th><th scope="col">Sismos</th></tr></thead>
+        <tbody>
+          @for (n of niveis(); track n.nivel) {
+            <tr><th scope="row">{{ n.nivel }}</th><td class="numero">{{ n.valor }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </details>
+  </app-grafico>
+}

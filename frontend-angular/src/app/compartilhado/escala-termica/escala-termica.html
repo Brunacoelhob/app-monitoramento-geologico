@@ -1,0 +1,36 @@
+<div class="escala" role="group" aria-label="Temperatura média de cada sensor no período">
+  <div class="leituras">
+    @for (item of itens(); track item.sentido) {
+      <div class="leitura" [class.frio]="item.sentido === 'INTERNO'" [class.calor]="item.sentido === 'EXTERNO'">
+        <span class="rotulo">{{ item.rotulo }}</span>
+        <strong class="valor numero">{{ item.valor | number: '1.1-1' }}<small> °C</small></strong>
+      </div>
+    }
+  </div>
+
+  <!-- Perfil de estratos: cada camada e um trecho da escala de temperatura -->
+  <div class="perfil">
+    <div class="estratos" aria-hidden="true">
+      @for (e of estratos; track e.cor) {
+        <span [style.background]="e.cor" [style.height.%]="e.altura"></span>
+      }
+    </div>
+    @for (item of itens(); track item.sentido) {
+      <span
+        class="marca"
+        [class.frio]="item.sentido === 'INTERNO'"
+        [class.calor]="item.sentido === 'EXTERNO'"
+        [style.left.%]="item.posicao"
+      >
+        <span class="haste"></span>
+        <span class="cabeca"></span>
+      </span>
+    }
+  </div>
+
+  <div class="extremos numero">
+    <span>{{ minimo() | number: '1.0-0' }} °C</span>
+    <span class="legenda">Menor e maior temperatura do período</span>
+    <span>{{ maximo() | number: '1.0-0' }} °C</span>
+  </div>
+</div>

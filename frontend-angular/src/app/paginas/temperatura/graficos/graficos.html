@@ -1,0 +1,50 @@
+<div class="exportar">
+  <p>Baixe os números deste período, com os mesmos filtros.</p>
+  <app-botao-relatorio modulo="temperatura" [consulta]="filtros.consulta()" />
+</div>
+
+@if (dados.erro()) {
+  <p class="aviso erro" role="alert">Não foi possível carregar os dados. Tente novamente em instantes.</p>
+} @else if (semLeituras()) {
+  <p class="aviso">Nenhuma leitura neste período. Escolha outras datas no calendário.</p>
+} @else {
+  <app-grafico
+    titulo="Temperatura média por hora"
+    descricao="Arraste a barra inferior ou use o scroll do mouse para aproximar. A linha tracejada é o sensor interno."
+    arquivo="temperatura-por-hora"
+    altura="26rem"
+    [opcoes]="opcoesLinha()"
+  />
+
+  <app-grafico
+    titulo="Temperatura média por hora do dia"
+    descricao="Média de todos os dias do período."
+    arquivo="temperatura-por-hora-do-dia"
+    [opcoes]="opcoesHoraDoDia()"
+  >
+    <details class="tabela">
+      <summary>Ver os dados deste gráfico em tabela</summary>
+      <table>
+        <caption class="so-leitor">Temperatura média por hora do dia</caption>
+        <thead>
+          <tr>
+            <th scope="col">Hora</th>
+            @for (s of sentidos(); track s) {
+              <th scope="col">{{ rotulos[s] }} (°C)</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of horas; track h) {
+            <tr>
+              <th scope="row">{{ h }}h</th>
+              @for (s of sentidos(); track s) {
+                <td class="numero">{{ mediaPorHora()[s][h] ?? '-' }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </details>
+  </app-grafico>
+}

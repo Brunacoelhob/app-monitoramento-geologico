@@ -1,0 +1,73 @@
+<app-cabecalho-pagina
+  icone="public"
+  titulo="Sismos"
+  descricao="Terremotos registrados pelo USGS, com alertas por magnitude no Japão."
+/>
+
+<section class="filtros" aria-label="Filtros">
+  <app-seletor-periodo
+    [inicio]="filtros.inicio()"
+    [fim]="filtros.fim()"
+    [limites]="filtros.limites()"
+    (alterado)="filtros.definirPeriodo($event.inicio, $event.fim)"
+  />
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="campo">
+    <mat-label>Magnitude</mat-label>
+    <mat-select [value]="filtros.magnitudeMin()" (selectionChange)="mudarMagnitude($event.value)">
+      @for (m of magnitudes; track m.rotulo) {
+        <mat-option [value]="m.valor">{{ m.rotulo }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="campo">
+    <mat-label>Nível</mat-label>
+    <mat-select [value]="filtros.nivel()" (selectionChange)="mudarNivel($event.value)">
+      <mat-option [value]="null">Todos os níveis</mat-option>
+      <mat-option value="ATENCAO">Atenção (M4,5 a 5,4)</mat-option>
+      <mat-option value="ALTO">Alto (M5,5 a 6,4)</mat-option>
+      <mat-option value="CRITICO">Crítico (M6,5 ou mais)</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="campo">
+    <mat-label>Origem dos dados</mat-label>
+    <mat-select [value]="filtros.origem()" (selectionChange)="mudarOrigem($event.value)">
+      <mat-option [value]="null">Reais e simulados</mat-option>
+      <mat-option value="REAL">Somente reais</mat-option>
+      <mat-option value="SIMULADO">Somente simulados</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="campo">
+    <mat-label>Perto da estação</mat-label>
+    <mat-select [value]="filtros.estacaoId()" (selectionChange)="mudarEstacao($event.value)">
+      <mat-option [value]="null">Todo o Japão</mat-option>
+      @for (estacao of estacoes.estacoes(); track estacao.id) {
+        @if (estacao.latitude !== null) {
+          <mat-option [value]="estacao.id">{{ estacao.nome }} (até 300 km)</mat-option>
+        }
+      }
+    </mat-select>
+  </mat-form-field>
+</section>
+
+<nav mat-tab-nav-bar [tabPanel]="painel" class="abas" aria-label="Seções de Sismos">
+  @for (aba of abas; track aba.rotulo) {
+    <a
+      mat-tab-link
+      [routerLink]="aba.rota"
+      routerLinkActive
+      #ativa="routerLinkActive"
+      [routerLinkActiveOptions]="{ exact: aba.exato }"
+      [active]="ativa.isActive"
+    >
+      {{ aba.rotulo }}
+    </a>
+  }
+</nav>
+
+<mat-tab-nav-panel #painel class="painel-aba">
+  <router-outlet />
+</mat-tab-nav-panel>

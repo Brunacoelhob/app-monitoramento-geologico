@@ -1,0 +1,60 @@
+<h2 mat-dialog-title>Alterar senha</h2>
+
+<form [formGroup]="formulario" (ngSubmit)="salvar()" novalidate>
+  <mat-dialog-content>
+    <mat-form-field appearance="outline">
+      <mat-label>Senha atual</mat-label>
+      <input matInput [type]="mostrar() ? 'text' : 'password'" formControlName="senhaAtual"
+        autocomplete="current-password" required />
+      @if (formulario.controls.senhaAtual.hasError('required')) {
+        <mat-error>Informe a senha atual.</mat-error>
+      } @else if (formulario.controls.senhaAtual.hasError('incorreta')) {
+        <mat-error>Senha atual incorreta.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Nova senha</mat-label>
+      <input matInput [type]="mostrar() ? 'text' : 'password'" formControlName="novaSenha"
+        autocomplete="new-password" required />
+      <button mat-icon-button matSuffix type="button" (click)="mostrar.set(!mostrar())"
+        [attr.aria-label]="mostrar() ? 'Ocultar senhas' : 'Mostrar senhas'">
+        <mat-icon>{{ mostrar() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      <mat-hint>Mínimo de 8 caracteres, com letras e números.</mat-hint>
+      @if (formulario.controls.novaSenha.hasError('required')) {
+        <mat-error>Informe a nova senha.</mat-error>
+      } @else if (formulario.controls.novaSenha.hasError('minlength')) {
+        <mat-error>Use pelo menos 8 caracteres.</mat-error>
+      } @else if (formulario.controls.novaSenha.hasError('senhaFraca')) {
+        <mat-error>Use letras e números.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Confirmar nova senha</mat-label>
+      <input matInput [type]="mostrar() ? 'text' : 'password'" formControlName="confirmacao"
+        autocomplete="new-password" required />
+      @if (formulario.controls.confirmacao.hasError('required')) {
+        <mat-error>Repita a nova senha.</mat-error>
+      } @else if (formulario.controls.confirmacao.hasError('diferentes')) {
+        <mat-error>As senhas não coincidem.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (erroServidor(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="salvando()">Cancelar</button>
+    <button mat-flat-button type="submit" [disabled]="salvando()">
+      @if (salvando()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Alterar senha
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,82 @@
+<mat-sidenav-container class="container">
+  <mat-sidenav
+    class="menu"
+    [mode]="modoMenu()"
+    [opened]="menuAberto()"
+    (openedChange)="menuAberto.set($event)"
+  >
+    <div class="marca">
+      <span class="logo"><mat-icon aria-hidden="true">public</mat-icon></span>
+      <span>Monitoramento</span>
+    </div>
+    <nav aria-label="Menu principal">
+      <mat-nav-list>
+        @for (item of itensMenu; track item.rota) {
+          <a
+            mat-list-item
+            [routerLink]="item.rota"
+            routerLinkActive="ativo"
+            #rla="routerLinkActive"
+            [activated]="rla.isActive"
+            [attr.aria-current]="rla.isActive ? 'page' : null"
+            (click)="aoNavegar()"
+          >
+            <mat-icon matListItemIcon aria-hidden="true">{{ item.icone }}</mat-icon>
+            <span matListItemTitle>{{ item.rotulo }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="topo">
+      <button
+        mat-icon-button
+        [attr.aria-label]="menuAberto() ? 'Recolher o menu' : 'Abrir o menu'"
+        [attr.aria-expanded]="menuAberto()"
+        [matTooltip]="menuAberto() ? 'Recolher o menu' : 'Abrir o menu'"
+        (click)="alternarMenu()"
+      >
+        <mat-icon>{{ menuAberto() ? 'menu_open' : 'menu' }}</mat-icon>
+      </button>
+
+      <span class="secao">{{ secao() }}</span>
+      <span class="espacador"></span>
+
+      <button class="conta" [matMenuTriggerFor]="menuConta" aria-label="Menu da conta">
+        <span class="avatar">
+          @if (perfil.avatarUrl(); as url) {
+            <img [src]="url" alt="" />
+          } @else {
+            {{ iniciais() }}
+          }
+        </span>
+        @if (auth.usuario(); as usuario) {
+          <span class="usuario">
+            {{ perfil.perfil()?.nome || usuario.email }}
+            <small>{{ usuario.papel === 'ADMIN' ? 'Administrador' : 'Visualizador' }}</small>
+          </span>
+        }
+        <mat-icon class="seta" aria-hidden="true">expand_more</mat-icon>
+      </button>
+
+      <mat-menu #menuConta="matMenu" xPosition="before">
+        <a mat-menu-item routerLink="/perfil"><mat-icon>account_circle</mat-icon> Meu perfil</a>
+        <button mat-menu-item (click)="auth.sair()"><mat-icon>logout</mat-icon> Sair</button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <main id="conteudo" class="conteudo" [class.larga]="larga()" tabindex="-1">
+      <router-outlet />
+    </main>
+
+    <footer class="aviso-oficial">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      <p>
+        Projeto de portfólio. Não é um sistema oficial de alerta sísmico. Para alertas oficiais, consulte a Agência
+        Meteorológica do Japão (JMA).
+      </p>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

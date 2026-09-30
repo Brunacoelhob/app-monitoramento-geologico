@@ -1,0 +1,150 @@
+@if (ocupado()) {
+  <mat-progress-bar mode="indeterminate" class="barra-progresso" />
+}
+
+<!-- Cabecalho do perfil -->
+<section class="capa">
+  <div class="avatar-area">
+    <div class="avatar-grande">
+      @if (servico.avatarUrl(); as url) {
+        <img [src]="url" alt="Sua foto de perfil" />
+      } @else {
+        <span>{{ iniciais() }}</span>
+      }
+    </div>
+
+    <button mat-mini-fab class="camera" [matMenuTriggerFor]="menuAvatar" aria-label="Alterar foto de perfil"
+      matTooltip="Alterar foto">
+      <mat-icon>photo_camera</mat-icon>
+    </button>
+    <mat-menu #menuAvatar="matMenu">
+      <button mat-menu-item (click)="entradaAvatar.click()"><mat-icon>upload</mat-icon> Enviar nova foto</button>
+      @if (perfil()?.temAvatar) {
+        <button mat-menu-item (click)="removerAvatar()"><mat-icon>delete</mat-icon> Remover foto</button>
+      }
+    </mat-menu>
+    <input #entradaAvatar type="file" hidden accept="image/jpeg,image/png,image/gif,image/webp"
+      (change)="escolherAvatar($event)" />
+  </div>
+
+  <div class="identidade">
+    <h1>{{ perfil()?.nome || 'Complete seu perfil' }}</h1>
+    <p class="email">{{ perfil()?.email }}</p>
+    <span class="selo">{{ perfil()?.papel === 'ADMIN' ? 'Administrador' : 'Visualizador' }}</span>
+  </div>
+
+  <div class="acoes">
+    <button mat-flat-button (click)="editarPerfil()"><mat-icon>edit</mat-icon> Editar perfil</button>
+    <button mat-stroked-button (click)="alterarSenha()"><mat-icon>lock</mat-icon> Alterar senha</button>
+  </div>
+</section>
+
+@if (perfil() && !perfil()!.completo) {
+  <div class="alerta" role="status">
+    <mat-icon>info</mat-icon>
+    <span>Seu perfil está incompleto. Preencha nome, CPF, celular e endereço.</span>
+    <button mat-button (click)="editarPerfil()">Completar agora</button>
+  </div>
+}
+
+<div class="colunas">
+  <!-- Dados pessoais -->
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title><mat-icon>person</mat-icon> Dados pessoais</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <dl class="dados">
+        <div><dt>Nome</dt><dd>{{ perfil()?.nome || '—' }}</dd></div>
+        <div><dt>E-mail</dt><dd>{{ perfil()?.email }}</dd></div>
+        <div><dt>CPF</dt><dd>{{ cpf() || '—' }}</dd></div>
+        <div><dt>Celular</dt><dd>{{ celular() || '—' }}</dd></div>
+        <div><dt>Conta criada em</dt><dd>{{ perfil()?.criadoEm | date: 'dd/MM/yyyy' }}</dd></div>
+      </dl>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Endereco -->
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title><mat-icon>home</mat-icon> Endereço</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <dl class="dados">
+        <div><dt>CEP</dt><dd>{{ cep() || '—' }}</dd></div>
+        <div>
+          <dt>Logradouro</dt>
+          <dd>
+            @if (perfil()?.logradouro) {
+              {{ perfil()?.logradouro }}, {{ perfil()?.numero }}
+              @if (perfil()?.complemento) { — {{ perfil()?.complemento }} }
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div><dt>Bairro</dt><dd>{{ perfil()?.bairro || '—' }}</dd></div>
+        <div>
+          <dt>Cidade / UF</dt>
+          <dd>{{ perfil()?.cidade ? perfil()?.cidade + ' / ' + perfil()?.uf : '—' }}</dd>
+        </div>
+      </dl>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Acervo de imagens -->
+<mat-card appearance="outlined" class="acervo">
+  <mat-card-header>
+    <mat-card-title><mat-icon>photo_library</mat-icon> Meu acervo</mat-card-title>
+    <mat-card-subtitle>
+      {{ servico.acervo().length }} de {{ limiteAcervo }} imagens. Aceita JPG, PNG, GIF ou WEBP de até 5 MB.
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <div
+      class="zona"
+      [class.arrastando]="arrastando()"
+      (dragover)="arrastar($event, true)"
+      (dragleave)="arrastar($event, false)"
+      (drop)="soltar($event)"
+    >
+      <mat-icon>cloud_upload</mat-icon>
+      <p><strong>Arraste imagens até aqui</strong> ou</p>
+      <button mat-flat-button (click)="entradaImagens.click()"><mat-icon>add_photo_alternate</mat-icon> Escolher imagens</button>
+      <input #entradaImagens type="file" hidden multiple accept="image/jpeg,image/png,image/gif,image/webp"
+        (change)="escolherImagens($event)" />
+    </div>
+
+    @if (servico.acervo().length === 0) {
+      <p class="vazio">Seu acervo está vazio. Adicione imagens para guardá-las aqui e baixá-las quando precisar.</p>
+    } @else {
+      <ul class="galeria">
+        @for (imagem of servico.acervo(); track imagem.id) {
+          <li class="item">
+            <button type="button" class="miniatura" (click)="ampliar(imagem)" [attr.aria-label]="'Ampliar ' + imagem.nomeOriginal">
+              @if (servico.miniaturas()[imagem.id]; as url) {
+                <img [src]="url" [alt]="imagem.nomeOriginal" loading="lazy" />
+              } @else {
+                <span class="carregando"></span>
+              }
+            </button>
+            <div class="legenda">
+              <span class="nome" [matTooltip]="imagem.nomeOriginal">{{ imagem.nomeOriginal }}</span>
+              <small>{{ formatarTamanho(imagem.tamanho) }}, {{ imagem.criadaEm | date: 'dd/MM/yyyy' }}</small>
+            </div>
+            <div class="botoes">
+              <button mat-icon-button (click)="baixar(imagem)" aria-label="Baixar imagem" matTooltip="Baixar">
+                <mat-icon>download</mat-icon>
+              </button>
+              <button mat-icon-button (click)="excluir(imagem)" aria-label="Excluir imagem" matTooltip="Excluir">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </mat-card-content>
+</mat-card>

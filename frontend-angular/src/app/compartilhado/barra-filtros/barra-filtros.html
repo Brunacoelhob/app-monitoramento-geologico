@@ -1,0 +1,27 @@
+<div class="barra">
+  <!-- Campos somente leitura: o periodo so muda escolhendo no calendario (sem limite de dias). -->
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" (click)="seletor.open()">
+    <mat-label>Período</mat-label>
+    <mat-date-range-input
+      [formGroup]="periodo"
+      [rangePicker]="seletor"
+      [min]="filtros.limites()?.min ?? null"
+      [max]="filtros.limites()?.max ?? hoje"
+    >
+      <input matStartDate formControlName="inicio" placeholder="Início" readonly />
+      <input matEndDate formControlName="fim" placeholder="Fim" readonly (dateChange)="periodoAlterado()" />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="seletor" />
+    <mat-date-range-picker #seletor />
+  </mat-form-field>
+
+  <mat-button-toggle-group
+    multiple
+    aria-label="Sentido"
+    [value]="filtros.sentidos()"
+    (change)="sentidosAlterados($event.source.value)"
+  >
+    <mat-button-toggle value="INTERNO">Interno</mat-button-toggle>
+    <mat-button-toggle value="EXTERNO">Externo</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>

@@ -1,0 +1,59 @@
+<button
+  type="button"
+  class="cartao"
+  [class.termico]="tom() === 'termico'"
+  (click)="abrir.emit()"
+  [attr.aria-label]="'Ver como é calculado: ' + titulo()"
+>
+  <span class="cabeca">
+    <span class="icone"><mat-icon aria-hidden="true">{{ icone() }}</mat-icon></span>
+    <span class="titulo">{{ titulo() }}</span>
+    <mat-icon class="info" aria-hidden="true">info</mat-icon>
+  </span>
+
+  <span class="valor numero">
+    @if (valor() === null) {
+      @if (carregando()) {
+        <span class="esqueleto"></span>
+      } @else {
+        —
+      }
+    } @else {
+      {{ valor() | number: formato() }}<small>{{ sufixo() }}</small>
+    }
+  </span>
+
+  <span class="descricao">{{ descricao() }}</span>
+
+  @if (linha(); as caminho) {
+    <svg class="grafico" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient [attr.id]="idArea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="var(--tom)" stop-opacity="0.28" />
+          <stop offset="1" stop-color="var(--tom)" stop-opacity="0" />
+        </linearGradient>
+        @if (tom() === 'termico') {
+          <!-- A cor segue a temperatura: valores baixos azuis, altos laranja -->
+          <linearGradient [attr.id]="idGradiente" gradientUnits="userSpaceOnUse" x1="0" y1="34" x2="0" y2="2">
+            <stop offset="0" stop-color="#38bdf8" />
+            <stop offset=".45" stop-color="#a78bfa" />
+            <stop offset=".75" stop-color="#fb923c" />
+            <stop offset="1" stop-color="#ef4444" />
+          </linearGradient>
+        }
+      </defs>
+      @if (area(); as a) {
+        <path [attr.d]="a" [attr.fill]="'url(#' + idArea + ')'" />
+      }
+      <path
+        [attr.d]="caminho"
+        fill="none"
+        [attr.stroke]="tom() === 'termico' ? 'url(#' + idGradiente + ')' : 'var(--tom)'"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        vector-effect="non-scaling-stroke"
+      />
+    </svg>
+  }
+</button>

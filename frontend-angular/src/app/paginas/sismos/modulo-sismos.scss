@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+// Filtros num painel limpo
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 1rem;
+  margin: 0 0 1.5rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--realce);
+}
+
+.campo {
+  width: 14.5rem;
+  max-width: 100%;
+}
+
+.abas {
+  margin-top: 0;
+}
+
+.painel-aba {
+  display: block;
+  padding-top: 1.75rem;
+}
