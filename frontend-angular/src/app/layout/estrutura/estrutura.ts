@@ -13,6 +13,7 @@ import { filter, map, startWith } from 'rxjs';
 import { Alarme } from '../../compartilhado/alarme/alarme';
 import { AuthServico } from '../../core/auth.servico';
 import { PerfilServico } from '../../core/perfil.servico';
+import { TempoRealServico } from '../../core/tempo-real.servico';
 
 const CHAVE_MENU = 'iot.menu';
 
@@ -60,6 +61,7 @@ export class Estrutura {
 
   // Menu aberto/recolhido. No desktop a escolha fica salva; no celular ele
   // comeca fechado para nao cobrir o conteudo.
+  protected readonly tempoReal = inject(TempoRealServico);
   protected readonly menuAberto = signal(this.preferenciaMenu());
 
   // "Usuarios" so aparece para o administrador

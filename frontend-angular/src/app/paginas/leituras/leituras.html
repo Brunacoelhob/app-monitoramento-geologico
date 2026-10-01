@@ -1,6 +1,13 @@
 <div class="exportar">
   <p>Baixe todas as leituras deste período, com os mesmos filtros.</p>
-  <app-botao-relatorio modulo="temperatura" [consulta]="filtros.consulta()" />
+  <div class="acoes-exportar">
+    @if (ehAdmin()) {
+      <button mat-stroked-button type="button" (click)="importar()">
+        <mat-icon aria-hidden="true">upload_file</mat-icon> Importar CSV
+      </button>
+    }
+    <app-botao-relatorio modulo="temperatura" [consulta]="filtros.consulta()" />
+  </div>
 </div>
 
 @if (carregando()) {

@@ -195,3 +195,35 @@ nav {
     display: none;
   }
 }
+
+// Indicador de que o canal em tempo real esta conectado
+.ao-vivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: 0.75rem;
+  padding: 0.15rem 0.625rem;
+  border-radius: 999px;
+  color: color-mix(in srgb, #16a34a 60%, var(--texto));
+  background: color-mix(in srgb, #16a34a 14%, transparent);
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  .ponto {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #16a34a;
+    animation: respirar 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes respirar {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+:host-context([data-movimento='reduzido']) .ao-vivo .ponto {
+  animation: none;
+}

@@ -44,6 +44,11 @@
       </button>
 
       <span class="secao">{{ secao() }}</span>
+      @if (tempoReal.conectado()) {
+        <span class="ao-vivo" matTooltip="Os dados se atualizam sozinhos, sem recarregar a página">
+          <span class="ponto" aria-hidden="true"></span> Ao vivo
+        </span>
+      }
       <span class="espacador"></span>
 
       <button class="conta" [matMenuTriggerFor]="menuConta" aria-label="Menu da conta">

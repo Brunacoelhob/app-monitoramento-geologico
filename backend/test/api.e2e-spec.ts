@@ -7,9 +7,12 @@ process.env.JWT_SECRET = 'segredo-de-teste-com-mais-de-32-caracteres-xx';
 process.env.SISMOS_AGENDADOR = 'false'; // sem USGS, simulador nem tarefas em segundo plano
 process.env.UPLOADS_DIR = 'uploads-teste';
 
+import { AddressInfo } from 'net';
+import * as nodeHttp from 'http';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import * as bcrypt from 'bcryptjs';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
@@ -27,6 +30,13 @@ describe('API (integração)', () => {
   let tokenAdmin: string;
   let tokenVisualizador: string;
   let idAdmin: number;
+
+  // Zera os contadores do limite de requisicoes: os testes de importacao passam do limite real (10/min) de proposito
+  const zerarLimites = () => {
+    const armazem = app.get(ThrottlerStorage) as unknown as { storage: Map<string, unknown>; hitExpirations?: Map<string, unknown> };
+    armazem.storage.clear();
+    armazem.hitExpirations?.clear();
+  };
 
   const admin = () => ({ Authorization: `Bearer ${tokenAdmin}` });
   const visualizador = () => ({ Authorization: `Bearer ${tokenVisualizador}` });
@@ -336,6 +346,150 @@ describe('API (integração)', () => {
       const r = await http.get('/api/perfil/avatar').set(visualizador()).expect(200);
       expect(r.headers['content-type']).toContain('image/png');
       await http.delete('/api/perfil/avatar').set(visualizador()).expect(204);
+    });
+  });
+
+  describe('importação de arquivo CSV (admin)', () => {
+    beforeEach(zerarLimites);
+    const csv = (...linhas: string[]) => Buffer.from(['sala;data_leitura;temperatura;sentido;id', ...linhas].join('\n'), 'utf-8');
+    const enviar = (corpo: Buffer, nome = 'leituras.csv', quem = admin) =>
+      http.post('/api/leituras/importar').set(quem()).attach('arquivo', corpo, { filename: nome, contentType: 'text/csv' });
+
+    beforeAll(async () => {
+      // A estação padrão ("legado") nasce numa migration, que o teste apaga ao zerar as tabelas
+      await prisma.estacao.upsert({ where: { codigo: 'LEGADO-SALA-ADMIN' }, update: {}, create: { codigo: 'LEGADO-SALA-ADMIN', nome: 'Sala Admin (legado)', origem: 'REAL' } });
+    });
+
+    it('importa as linhas boas, recusa as ruins com a linha e o motivo, e é seguro reenviar', async () => {
+      const arquivo = csv(
+        'Sala T;29/09/2026 10:00;22,4;INTERNO;imp-teste-1',
+        'Sala T;29/09/2026 10:00;27,1;EXTERNO;imp-teste-2',
+        'Sala T;29/09/2026 10:05;999;INTERNO;imp-teste-3', // fora da faixa
+        'Sala T;29/09/2026 10:10;21;lateral;imp-teste-4', // sentido invalido
+        'Sala T;29/09/2026 10:15;20,5;INTERNO;imp-teste-5',
+      );
+      const r = await enviar(arquivo).expect(200);
+      expect(r.body).toMatchObject({ linhasLidas: 5, importadas: 3, ignoradas: 0, totalRejeitadas: 2 });
+      expect(r.body.rejeitadas.map((e: { linha: number }) => e.linha)).toEqual([4, 5]);
+
+      const gravada = await prisma.leitura.findUniqueOrThrow({ where: { id: 'imp-teste-1' } });
+      expect(Number(gravada.temperatura)).toBe(22.4);
+      expect(gravada.estacaoId).not.toBeNull();
+
+      const de_novo = await enviar(arquivo).expect(200);
+      expect(de_novo.body).toMatchObject({ importadas: 0, ignoradas: 3, totalRejeitadas: 2 });
+    });
+
+    it('sem id no arquivo, cada linha recebe um id novo', async () => {
+      const r = await enviar(csv('Sala U;29/09/2026 11:00;18;INTERNO;', 'Sala U;29/09/2026 11:00;18;INTERNO;')).expect(200);
+      expect(r.body.importadas).toBe(2);
+    });
+
+    it('as leituras importadas aparecem nas consultas da API', async () => {
+      const r = await http.get('/api/leituras?inicio=2026-09-29&fim=2026-09-29&limite=100').set(visualizador()).expect(200);
+      expect(r.body.itens.filter((l: { sala: string }) => l.sala === 'Sala T')).toHaveLength(3);
+    });
+
+    it('permite escolher a estação; estação inexistente devolve 404', async () => {
+      const est = await prisma.estacao.findFirstOrThrow({ where: { codigo: 'TESTE-01' } });
+      await http.post('/api/leituras/importar').set(admin()).field('estacaoId', String(est.id))
+        .attach('arquivo', csv('Sala V;29/09/2026 12:00;19;INTERNO;imp-teste-v'), { filename: 'v.csv', contentType: 'text/csv' }).expect(200);
+      expect((await prisma.leitura.findUniqueOrThrow({ where: { id: 'imp-teste-v' } })).estacaoId).toBe(est.id);
+      await http.post('/api/leituras/importar').set(admin()).field('estacaoId', '999999')
+        .attach('arquivo', csv('Sala V;29/09/2026 12:00;19;INTERNO;x'), { filename: 'v.csv', contentType: 'text/csv' }).expect(404);
+    });
+
+    it('visualizador não importa (403) e sem token devolve 401', async () => {
+      await enviar(csv('S;29/09/2026 10:00;20;INTERNO;z'), 'a.csv', visualizador).expect(403);
+      await http.post('/api/leituras/importar').attach('arquivo', csv('x'), { filename: 'a.csv' }).expect(401);
+    });
+
+    it('recusa: sem arquivo, extensão errada, binário, cabeçalho errado e arquivo vazio (400)', async () => {
+      await http.post('/api/leituras/importar').set(admin()).expect(400);
+      await enviar(csv('S;29/09/2026 10:00;20;INTERNO;z'), 'planilha.xlsx').expect(400);
+      await enviar(Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0x00, 0x00]), 'binario.csv').expect(400);
+      await enviar(Buffer.from('coluna1,coluna2\n1,2'), 'errado.csv').expect(400);
+      await enviar(Buffer.from(''), 'vazio.csv').expect(400);
+    });
+
+    it('arquivo acima de 5 MB devolve 413', async () => {
+      await enviar(Buffer.alloc(5 * 1024 * 1024 + 10, 'a'), 'grande.csv').expect(413);
+    });
+
+    it('mais de 10 importações em 1 minuto devolvem 429', async () => {
+      for (let i = 0; i < 10; i++) await enviar(csv(`S;29/09/2026 10:${String(i).padStart(2, '0')};20;INTERNO;lim-${i}`)).expect(200);
+      await enviar(csv('S;29/09/2026 11:00;20;INTERNO;lim-x')).expect(429);
+    });
+
+    it('o modelo de CSV pode ser baixado e é aceito pela própria importação', async () => {
+      const modelo = await http.get('/api/leituras/importar/modelo').set(visualizador()).expect(200);
+      expect(modelo.headers['content-type']).toContain('text/csv');
+      expect(modelo.headers['content-disposition']).toContain('modelo-importacao-leituras.csv');
+      const r = await enviar(Buffer.from(modelo.text, 'utf-8'), 'modelo.csv').expect(200);
+      expect(r.body.totalRejeitadas).toBe(0);
+    });
+  });
+
+  describe('tempo real (SSE)', () => {
+    let porta: number;
+    beforeEach(zerarLimites);
+
+    // Abre o canal e junta o que chega, ate o texto esperado aparecer (ou estourar o tempo)
+    const ouvir = (token: string | null, esperar: RegExp, acao?: () => Promise<void>) =>
+      new Promise<string>((resolver, rejeitar) => {
+        const req = nodeHttp.get(
+          { host: '127.0.0.1', port: porta, path: '/api/tempo-real', headers: token ? { Authorization: `Bearer ${token}` } : {} },
+          (res) => {
+            if (res.statusCode !== 200) {
+              res.resume();
+              return resolver(`status:${res.statusCode}`);
+            }
+            let texto = '';
+            let disparou = false;
+            const prazo = setTimeout(() => { req.destroy(); rejeitar(new Error(`Não chegou ${esperar}. Recebido: ${texto}`)); }, 8000);
+            res.on('data', (parte) => {
+              texto += parte.toString();
+              if (!disparou && texto.includes('event: conectado') && acao) {
+                disparou = true;
+                void acao();
+              }
+              if (esperar.test(texto)) { clearTimeout(prazo); req.destroy(); resolver(texto); }
+            });
+          },
+        );
+        req.on('error', () => undefined);
+      });
+
+    beforeAll(async () => {
+      await app.listen(0, '127.0.0.1');
+      porta = (app.getHttpServer().address() as AddressInfo).port;
+    });
+
+    it('sem token o canal devolve 401', async () => {
+      expect(await ouvir(null, /nunca/)).toBe('status:401');
+    });
+
+    it('com token abre o canal e avisa "conectado"', async () => {
+      const texto = await ouvir(tokenVisualizador, /event: conectado/);
+      expect(texto).toContain('event: conectado');
+    });
+
+    it('um alerta novo chega como evento "alerta" (sem dados sensíveis)', async () => {
+      const evento = await prisma.eventoSismico.create({
+        data: { idExterno: 'teste-sse-1', magnitude: 6.1, profundidadeKm: 20, latitude: 37.5, longitude: 141.5, local: 'Teste SSE', ocorridoEm: new Date() },
+      });
+      const texto = await ouvir(tokenVisualizador, /event: alerta/, () => alertas.processarEvento(evento));
+      const dados = JSON.parse(/data: (\{.*\})/.exec(texto.slice(texto.indexOf('event: alerta')))![1]);
+      expect(dados).toMatchObject({ acao: 'aberto' });
+      expect(Object.keys(dados).sort()).toEqual(['acao', 'id']); // so diz O QUE mudou
+    });
+
+    it('a importação de CSV avisa "leituras"', async () => {
+      const texto = await ouvir(tokenVisualizador, /event: leituras/, async () => {
+        await http.post('/api/leituras/importar').set(admin())
+          .attach('arquivo', Buffer.from('sala;data_leitura;temperatura;sentido;id\nSala W;29/09/2026 13:00;20;INTERNO;imp-sse-1'), { filename: 'w.csv', contentType: 'text/csv' });
+      });
+      expect(texto).toContain('event: leituras');
     });
   });
 });

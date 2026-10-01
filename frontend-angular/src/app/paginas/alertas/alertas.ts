@@ -1,5 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -10,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { CabecalhoPagina } from '../../compartilhado/cabecalho-pagina/cabecalho-pagina';
 import { SeloNivel } from '../../compartilhado/selo-nivel/selo-nivel';
 import { AlarmeServico } from '../../core/alarme.servico';
+import { TempoRealServico } from '../../core/tempo-real.servico';
 import { AuthServico } from '../../core/auth.servico';
 import { AlertaResumo, EstadoAlerta, NivelAlerta } from '../../core/modelos';
 import { FUSO_JAPAO } from '../../core/nivel';
@@ -45,6 +48,10 @@ export class Alertas {
 
   constructor() {
     this.carregar();
+    // Alerta novo, reconhecido ou encerrado em qualquer lugar: a lista se atualiza sem piscar
+    inject(TempoRealServico)
+      .avisos$.pipe(filter((aviso) => aviso.tipo === 'alerta'), takeUntilDestroyed())
+      .subscribe(() => this.carregar(true));
   }
 
   protected mudarEstado(v: EstadoAlerta | null) { this.estado.set(v); this.recarregar(); }
@@ -65,14 +72,16 @@ export class Alertas {
     this.carregar();
   }
 
-  private carregar() {
+  private carregar(silencioso = false) {
     const filtros: FiltrosAlertas = {
       estado: this.estado() ?? undefined,
       nivel: this.nivel() ?? undefined,
       tipo: this.tipo() ?? undefined,
     };
-    this.carregando.set(true);
-    this.erro.set(false);
+    if (!silencioso) {
+      this.carregando.set(true);
+      this.erro.set(false);
+    }
     this.sismos.alertas(filtros, this.indicePagina() + 1, this.tamanhoPagina()).subscribe({
       next: (r) => {
         this.itens.set(r.itens);

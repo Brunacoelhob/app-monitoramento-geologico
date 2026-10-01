@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,6 +19,7 @@ import { mensagemDeErro } from '../../core/arquivo';
 import { AuthServico } from '../../core/auth.servico';
 import { EstacoesServico } from '../../core/estacoes.servico';
 import { Estacao, SeriesEstacao } from '../../core/modelos';
+import { TempoRealServico } from '../../core/tempo-real.servico';
 import { FUSO_JAPAO } from '../../core/nivel';
 import { ChaveDialog } from './chave-dialog/chave-dialog';
 import { NovaEstacaoDialog } from './nova-estacao-dialog/nova-estacao-dialog';
@@ -50,6 +52,12 @@ export class Estacoes {
 
   constructor() {
     this.estacoes.carregar().subscribe({ error: () => undefined });
+    // Tempo real: situacao online/offline e ultima leitura se atualizam sozinhas
+    inject(TempoRealServico)
+      .avisos$.pipe(takeUntilDestroyed())
+      .subscribe((aviso) => {
+        if (aviso.tipo === 'leituras' || aviso.tipo === 'alerta') this.estacoes.carregar().subscribe({ error: () => undefined });
+      });
     // Abre direto a estacao pedida na URL
     effect(() => {
       const id = Number(this.estacao());

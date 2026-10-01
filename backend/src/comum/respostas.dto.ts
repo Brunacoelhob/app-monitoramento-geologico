@@ -368,3 +368,18 @@ export class UsuarioListaResposta {
   @ApiProperty({ example: '2026-01-05T10:00:00.000Z' }) criadoEm: string;
   @ApiProperty({ example: false, description: 'Se a pessoa já enviou um avatar.' }) temAvatar: boolean;
 }
+
+// ---------- Importacao de arquivo ----------
+
+export class ErroLinhaImportacao {
+  @ApiProperty({ example: 14, description: 'Linha do arquivo (o cabeçalho é a linha 1).' }) linha: number;
+  @ApiProperty({ example: "Temperatura fora da faixa de -50 a 150 °C: 999." }) motivo: string;
+}
+
+export class ImportacaoResposta {
+  @ApiProperty({ example: 1200, description: 'Linhas de dados lidas do arquivo (sem o cabeçalho).' }) linhasLidas: number;
+  @ApiProperty({ example: 1185, description: 'Leituras gravadas.' }) importadas: number;
+  @ApiProperty({ example: 10, description: 'Linhas ignoradas por repetirem um id (no arquivo ou já existente no banco).' }) ignoradas: number;
+  @ApiProperty({ example: 5, description: 'Total de linhas recusadas pela validação.' }) totalRejeitadas: number;
+  @ApiProperty({ type: [ErroLinhaImportacao], description: 'As primeiras 50 linhas recusadas, com o motivo.' }) rejeitadas: ErroLinhaImportacao[];
+}

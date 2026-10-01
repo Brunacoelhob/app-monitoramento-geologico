@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TempoRealService } from '../tempo-real/tempo-real.service';
 import { AlertasService } from './alertas.service';
 import { CAIXA_JAPAO, regras } from './config';
 import { lerGeoJsonUsgs } from './usgs.parser';
@@ -23,13 +24,18 @@ export class UsgsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly alertas: AlertasService,
+    private readonly tempoReal: TempoRealService,
   ) {}
 
   async sincronizar(): Promise<ResultadoSincronizacao> {
     if (this.emAndamento) return { recebidos: 0, novos: 0, atualizados: 0, ignorado: 'Já há uma sincronização em andamento.' };
     this.emAndamento = true;
     try {
-      return await this.executar();
+      const resultado = await this.executar();
+      if (resultado.novos > 0 || resultado.atualizados > 0) {
+        this.tempoReal.emitir('sismos', { novos: resultado.novos, atualizados: resultado.atualizados });
+      }
+      return resultado;
     } finally {
       this.emAndamento = false;
     }

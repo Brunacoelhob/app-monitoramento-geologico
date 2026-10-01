@@ -1,7 +1,10 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
 import { AuthServico } from './auth.servico';
 import { AlertaResumo, NivelAlerta } from './modelos';
 import { SismosServico } from './sismos.servico';
+import { TempoRealServico } from './tempo-real.servico';
 
 const CHAVE = 'iot.alarmes.dispensados';
 const INTERVALO_MS = 60_000;
@@ -22,6 +25,7 @@ function lerDispensados(): number[] {
 export class AlarmeServico {
   private readonly auth = inject(AuthServico);
   private readonly sismos = inject(SismosServico);
+  private readonly tempoReal = inject(TempoRealServico);
 
   private readonly abertos = signal<AlertaResumo[]>([]);
   private readonly dispensados = signal<number[]>(lerDispensados());
@@ -41,6 +45,13 @@ export class AlarmeServico {
   });
 
   constructor() {
+    // Tempo real: um alerta novo acende a luz na hora (a busca a cada minuto fica como reserva)
+    this.tempoReal.avisos$
+      .pipe(filter((aviso) => aviso.tipo === 'alerta'), takeUntilDestroyed())
+      .subscribe(() => {
+        if (this.auth.autenticado()) this.buscar();
+      });
+
     effect((limpar) => {
       if (!this.auth.autenticado()) {
         this.abertos.set([]);

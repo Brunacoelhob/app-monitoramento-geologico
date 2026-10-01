@@ -33,6 +33,8 @@ Sistema completo de monitoramento: **terremotos do mundo todo** (USGS, com o Jap
 - **Notificação externa (opcional):** defina `ALERTA_WEBHOOK_URL` e cada alerta Alto/Crítico é enviado por webhook (Slack, Discord, Teams ou qualquer endpoint).
 - **Estações IoT:** sismógrafo, GPS e temperatura, reais ou simuladas, autenticadas por **chave de API** exibida uma única vez. Ingestão em lote (até 500 leituras) com validação por leitura.
 - **Temperatura:** leituras interna/externa, totais, série por hora e relatórios (módulo original do projeto, sobre o dataset do Kaggle).
+- **Importação de CSV (admin):** botão **Importar CSV** na aba Dados da Temperatura (ou `POST /leituras/importar` no Swagger, com botão de escolher arquivo). Aceita `;` ou `,`, datas `dd/mm/aaaa hh:mm`, temperatura com vírgula e as colunas do dataset original. As linhas boas entram; as ruins voltam com **número da linha e motivo**; reenviar o mesmo arquivo é seguro. Há modelo de CSV para baixar.
+- **Tempo real:** o painel se atualiza sozinho, sem recarregar. Um canal SSE (`GET /tempo-real`) avisa alerta novo, sismos novos do USGS e leituras novas (estações ou importação). O alarme em tela cheia acende na hora e o indicador **Ao vivo** aparece na barra superior.
 - **Gráficos explicados:** cada gráfico tem o botão **Entenda este gráfico** (o que mostra, como ler, o que observar) e baixa em PNG.
 - **Gestão de usuários** (somente ADMIN): criar contas, trocar papel, remover. Não há cadastro público.
 - **Perfil:** dados pessoais com máscara e validação (CPF, celular, CEP com **ViaCEP**), troca de senha, avatar e acervo de imagens com upload.
@@ -138,33 +140,34 @@ cd frontend-angular && npm install && npm start  # http://localhost:4200 (proxy 
 
 Prefixo `/api`. Envie `Authorization: Bearer <token>`.
 
-**Swagger em `http://localhost:3000/api/docs`** (só em desenvolvimento, com `npm run start:dev`; desligado em produção/Docker): as 44 rotas com descrição, parâmetros com exemplo, limites, respostas e erros por status. O login preenche o cadeado **Authorize** sozinho; os uploads (avatar e acervo) têm botão de escolher arquivo; relatórios e imagens têm link de download. O JSON OpenAPI fica em `/api/docs-json`.
+**Swagger em `http://localhost:3000/api/docs`** (só em desenvolvimento, com `npm run start:dev`; desligado em produção/Docker): as 47 rotas com descrição, parâmetros com exemplo, limites, respostas e erros por status. O login preenche o cadeado **Authorize** sozinho; os uploads (avatar e acervo) têm botão de escolher arquivo; relatórios e imagens têm link de download. O JSON OpenAPI fica em `/api/docs-json`.
 
 | Grupo | Rotas principais |
 |---|---|
 | Autenticação | `POST /auth/login` · `GET /auth/eu` |
-| Temperatura | `GET /leituras` · `/periodo` · `/totais` · `/serie-horaria` · `/relatorio` · `POST /leituras` (admin) |
+| Temperatura | `GET /leituras` · `/periodo` · `/totais` · `/serie-horaria` · `/relatorio` · admin: `POST /leituras`, `POST /leituras/importar` (CSV), `GET /leituras/importar/modelo` |
 | Estações | `GET /estacoes` · `/:id` · `/:id/series` · admin: `POST`, `PUT /:id`, `PUT /:id/situacao`, `POST /:id/chave`, `POST /:id/sensores` |
 | Ingestão | `POST /ingestao/leituras` (cabeçalho `x-chave-estacao`) |
 | Sismos | `GET /eventos` · `/regioes` · `/totais` · `/serie-diaria` · `/mapa` · `/periodo` · `/relatorio` · `POST /eventos/sincronizar` (admin) |
 | Alertas | `GET /alertas` · `/:id` · admin: `PUT /:id/reconhecer`, `PUT /:id/encerrar` |
 | Usuários (admin) | `GET/POST /usuarios` · `PUT /usuarios/:id/papel` · `DELETE /usuarios/:id` |
 | Perfil | `GET/PUT /perfil` · `PUT /perfil/senha` · `/perfil/avatar` · `/perfil/acervo` |
+| Tempo real | `GET /tempo-real` (SSE: eventos `alerta`, `sismos`, `leituras`) |
 | Saúde | `GET /saude` (pública) |
 
 ## Testes e CI
 
 ```bash
 cd backend
-npm test                # 51 testes unitários (regras puras: alertas, réplicas, CPF, CSV, webhook)
-npm run test:e2e        # 32 testes de integração: API inteira + banco de teste isolado
+npm test                # 68 testes unitários (regras puras: alertas, réplicas, CPF, CSV, importação, webhook)
+npm run test:e2e        # 45 testes de integração: API inteira + banco de teste isolado
 npx tsc --noEmit
 
 cd ../frontend-angular
-npm test -- --watch=false   # 13 testes (níveis de magnitude, horário JST, alarme em tela cheia)
+npm test -- --watch=false   # 20 testes (níveis de magnitude, horário JST, alarme em tela cheia, leitura do canal em tempo real)
 ```
 
-Os testes de integração sobem a aplicação com a **mesma configuração de produção** e cobrem login, permissões por papel, ingestão com chave de estação (repetidas, rejeitadas, chave trocada, estação inativa), o fluxo completo de alertas, filtros por região, gestão de usuários e upload de arquivos. Usam um banco exclusivo: defina `DATABASE_URL_TESTE` (o nome **precisa conter `test`**; o teste recusa qualquer outro, para nunca apagar o banco de desenvolvimento).
+Os testes de integração sobem a aplicação com a **mesma configuração de produção** e cobrem login, permissões por papel, ingestão com chave de estação (repetidas, rejeitadas, chave trocada, estação inativa), o fluxo completo de alertas, filtros por região, gestão de usuários, upload e importação de arquivos (inclusive o limite de 10 importações por minuto) e o canal em tempo real. Usam um banco exclusivo: defina `DATABASE_URL_TESTE` (o nome **precisa conter `test`**; o teste recusa qualquer outro, para nunca apagar o banco de desenvolvimento).
 
 ```bash
 docker exec postgres-iot psql -U postgres -c "CREATE DATABASE iot_test"   # uma vez
@@ -192,6 +195,7 @@ Para publicar em um servidor, veja [docs/deploy.md](docs/deploy.md).
 - **Validação:** campos desconhecidos são rejeitados, tipos e faixas conferidos, paginação limitada a 100. SQL parametrizado (Prisma).
 - **Uploads:** tipo conferido pelos primeiros bytes (JPG, PNG, GIF, WEBP; SVG recusado), nome aleatório em disco, cada usuário só acessa os próprios arquivos.
 - **Cabeçalhos** de segurança (Helmet), CORS restrito a `CORS_ORIGENS`, containers sem root, portas publicadas só em `127.0.0.1`, segredos só no `.env` (no `.gitignore`).
+- **Tempo real seguro:** o canal exige token, não carrega dados (só diz *o que* mudou; o painel busca o resto pelas rotas normais, com as próprias permissões) e se encerra a cada 10 minutos, para o token ser conferido de novo.
 - **Limitação conhecida:** o papel vai dentro do token; uma troca de papel vale no próximo login (o token atual expira em até `JWT_EXPIRA_EM`).
 
 ## Configuração (`.env`)

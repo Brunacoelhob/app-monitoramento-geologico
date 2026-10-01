@@ -8,6 +8,7 @@ import {
 import { EstadoAlerta, EventoSismico, NivelAlerta, Prisma, TipoAlerta } from '@prisma/client';
 import { UsuarioLogado } from '../auth/decoradores';
 import { PrismaService } from '../prisma/prisma.service';
+import { TempoRealService } from '../tempo-real/tempo-real.service';
 import { regras } from './config';
 import { NotificadorService } from './notificador.service';
 import { EstacoesService } from './estacoes.service';
@@ -30,7 +31,13 @@ export class AlertasService {
     private readonly prisma: PrismaService,
     private readonly estacoes: EstacoesService,
     private readonly notificador: NotificadorService,
+    private readonly tempoReal: TempoRealService,
   ) {}
+
+  // Avisa os navegadores abertos (canal em tempo real) que um alerta mudou.
+  private avisar(id: number, acao: string) {
+    this.tempoReal.emitir('alerta', { id, acao });
+  }
 
   // RN-19: toda mudanca guarda quem fez e quando.
   private registrar(alertaId: number, acao: string, detalhes?: string, usuarioId?: number) {
@@ -43,6 +50,7 @@ export class AlertasService {
       data: { estado: 'ENCERRADO', encerradoEm: new Date(), encerradoAutomatico: true, motivoEncerramento: motivo },
     });
     await this.registrar(alertaId, 'encerrado_automaticamente', motivo);
+    this.avisar(alertaId, 'encerrado');
   }
 
   // ---------- Regras disparadas por evento (RN-16, RN-17, RN-21) ----------
@@ -81,6 +89,7 @@ export class AlertasService {
           'nivel_alterado',
           `De ${existente.nivel} para ${nivel} (magnitude revisada para ${evento.magnitude.toFixed(1)}).`,
         );
+        this.avisar(existente.id, 'reclassificado');
       }
       return;
     }
@@ -105,6 +114,7 @@ export class AlertasService {
           'replica_anexada',
           `Réplica M${evento.magnitude.toFixed(1)}: ${evento.local}.`,
         );
+        this.avisar(principal.id, 'replica');
         return;
       }
     } else {
@@ -124,6 +134,7 @@ export class AlertasService {
       });
       await this.registrar(alerta.id, 'aberto', 'Gerado automaticamente a partir do evento.');
       void this.notificador.alertaAberto(alerta, evento); // sem await: o webhook nao atrasa o processamento
+      this.avisar(alerta.id, 'aberto');
     } catch (erro) {
       // Duas execucoes ao mesmo tempo: a segunda bate no indice unico e e ignorada.
       if (!(erro instanceof Prisma.PrismaClientKnownRequestError && erro.code === 'P2002')) throw erro;
@@ -172,6 +183,7 @@ export class AlertasService {
         },
       });
       await this.registrar(alerta.id, 'aberto', `Nenhuma leitura há mais de ${semComunicacaoMinutos} minutos.`);
+      this.avisar(alerta.id, 'aberto');
       abertos++;
     }
     return abertos;
@@ -257,6 +269,7 @@ export class AlertasService {
       data: { estado: 'RECONHECIDO', reconhecidoEm: new Date(), reconhecidoPorId: usuario.id },
     });
     await this.registrar(id, 'reconhecido', undefined, usuario.id);
+    this.avisar(id, 'reconhecido');
     return this.obter(id);
   }
 
@@ -276,6 +289,7 @@ export class AlertasService {
       data: { estado: 'ENCERRADO', encerradoEm: new Date(), encerradoPorId: usuario.id, motivoEncerramento: texto || null },
     });
     await this.registrar(id, 'encerrado', texto, usuario.id);
+    this.avisar(id, 'encerrado');
     return this.obter(id);
   }
 }

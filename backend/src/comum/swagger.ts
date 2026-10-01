@@ -24,6 +24,7 @@ export const TAGS = {
   perfil: 'Perfil',
   saude: 'Saúde',
   usuarios: 'Usuários',
+  tempoReal: 'Tempo real',
 } as const;
 
 const DESCRICAO_API = `
@@ -89,6 +90,7 @@ export function configurarSwagger(app: INestApplication, porta: number) {
     .addTag(TAGS.alertas, 'Alertas gerados por magnitude (Japão) e por estação sem comunicação: consulta, reconhecimento e encerramento.')
     .addTag(TAGS.perfil, 'Dados do próprio usuário, senha, avatar e acervo de imagens (upload de arquivos).')
     .addTag(TAGS.usuarios, 'Gestão de contas pelo ADMIN: listar, criar, mudar papel e remover. Não há cadastro público.')
+    .addTag(TAGS.tempoReal, 'Canal de avisos (SSE) para o painel se atualizar sem recarregar: alertas, sismos e leituras novas.')
     .addTag(TAGS.saude, 'Verificação de que a API e o banco estão no ar (usada pelo Docker e por monitores).')
     .build();
 

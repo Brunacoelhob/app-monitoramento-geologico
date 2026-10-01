@@ -1,0 +1,98 @@
+<h2 mat-dialog-title>Importar leituras de um arquivo CSV</h2>
+
+<mat-dialog-content>
+  @if (resultado(); as r) {
+    <section class="resultado" aria-live="polite">
+      <p class="resumo" [class.com-erros]="r.totalRejeitadas > 0">
+        <mat-icon aria-hidden="true">{{ r.totalRejeitadas > 0 ? 'warning' : 'check_circle' }}</mat-icon>
+        <span>
+          <strong>{{ r.importadas }}</strong> {{ r.importadas === 1 ? 'leitura importada' : 'leituras importadas' }}
+          de {{ r.linhasLidas }} {{ r.linhasLidas === 1 ? 'linha' : 'linhas' }}.
+        </span>
+      </p>
+
+      <dl class="numeros">
+        <div><dt>Importadas</dt><dd class="numero">{{ r.importadas }}</dd></div>
+        <div><dt>Ignoradas (id repetido)</dt><dd class="numero">{{ r.ignoradas }}</dd></div>
+        <div><dt>Recusadas</dt><dd class="numero">{{ r.totalRejeitadas }}</dd></div>
+      </dl>
+
+      @if (r.totalRejeitadas > 0) {
+        <h3>Linhas recusadas</h3>
+        <div class="erros">
+          <table>
+            <caption class="so-leitor">Linhas recusadas na importação</caption>
+            <thead><tr><th scope="col">Linha</th><th scope="col">Motivo</th></tr></thead>
+            <tbody>
+              @for (e of r.rejeitadas; track e.linha) {
+                <tr><th scope="row">{{ e.linha }}</th><td>{{ e.motivo }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (r.totalRejeitadas > r.rejeitadas.length) {
+          <p class="nota">Mostrando as primeiras {{ r.rejeitadas.length }} de {{ r.totalRejeitadas }} linhas recusadas.</p>
+        }
+        <p class="nota">Corrija essas linhas e envie o arquivo de novo: as que já entraram são ignoradas se tiverem <code>id</code>.</p>
+      }
+    </section>
+  } @else {
+    <p class="ajuda">
+      Colunas: <code>sala</code>, <code>data_leitura</code>, <code>temperatura</code>, <code>sentido</code> e, se quiser, <code>id</code>.
+      Aceita separador <code>;</code> ou <code>,</code>, data <code>dd/mm/aaaa hh:mm</code> e temperatura com vírgula. Até 5 MB e 20 mil linhas.
+    </p>
+
+    <button type="button" mat-button class="modelo" (click)="baixarModelo()">
+      <mat-icon aria-hidden="true">download</mat-icon> Baixar modelo de CSV
+    </button>
+
+    <div
+      class="soltar"
+      [class.arrastando]="arrastando()"
+      (dragover)="sobre($event, true)"
+      (dragleave)="sobre($event, false)"
+      (drop)="soltar($event)"
+    >
+      <mat-icon aria-hidden="true">upload_file</mat-icon>
+      @if (arquivo(); as a) {
+        <p><strong>{{ a.name }}</strong> <span class="tam">({{ tamanho() }})</span></p>
+      } @else {
+        <p>Arraste o arquivo aqui ou</p>
+      }
+      <input #entrada type="file" accept=".csv,.txt,text/csv" hidden (change)="escolher(entrada)" />
+      <button type="button" mat-stroked-button (click)="entrada.click()">
+        {{ arquivo() ? 'Escolher outro arquivo' : 'Escolher arquivo' }}
+      </button>
+    </div>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="estacao">
+      <mat-label>Estação que recebe as leituras</mat-label>
+      <mat-select [value]="estacaoId()" (selectionChange)="estacaoId.set($event.value)">
+        <mat-option [value]="null">Estação padrão (Sala Admin, legado)</mat-option>
+        @for (e of estacoes.estacoes(); track e.id) {
+          <mat-option [value]="e.id">{{ e.nome }}{{ e.origem === 'SIMULADO' ? ' (simulada)' : '' }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (erro(); as mensagem) {
+      <p class="erro" role="alert">{{ mensagem }}</p>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (resultado()) {
+    <button mat-button type="button" (click)="novoArquivo()">Importar outro arquivo</button>
+    <button mat-flat-button type="button" [mat-dialog-close]="true">Concluir</button>
+  } @else {
+    <button mat-button type="button" mat-dialog-close>Cancelar</button>
+    <button mat-flat-button type="button" [disabled]="!arquivo() || enviando()" (click)="importar()">
+      @if (enviando()) {
+        <mat-spinner diameter="18" />
+      } @else {
+        Importar
+      }
+    </button>
+  }
+</mat-dialog-actions>

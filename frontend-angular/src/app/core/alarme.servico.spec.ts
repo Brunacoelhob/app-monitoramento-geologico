@@ -1,10 +1,11 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { AlarmeServico } from './alarme.servico';
 import { AuthServico } from './auth.servico';
 import { AlertaResumo, PaginaAlertas } from './modelos';
 import { SismosServico } from './sismos.servico';
+import { AvisoTempoReal, TempoRealServico } from './tempo-real.servico';
 
 const alerta = (id: number, nivel: AlertaResumo['nivel'], abertoEm: string): AlertaResumo => ({
   id, tipo: 'SISMO', nivel, nivelAnterior: null, estado: 'ABERTO', titulo: `Alerta ${id}`, abertoEm,
@@ -12,6 +13,7 @@ const alerta = (id: number, nivel: AlertaResumo['nivel'], abertoEm: string): Ale
 });
 
 function preparar(itens: AlertaResumo[], autenticado = true) {
+  const avisos = new Subject<AvisoTempoReal>();
   localStorage.clear();
   const pagina: PaginaAlertas = { total: itens.length, pagina: 1, limite: 50, itens };
   const alertas = vi.fn(() => of(pagina));
@@ -19,11 +21,12 @@ function preparar(itens: AlertaResumo[], autenticado = true) {
     providers: [
       { provide: AuthServico, useValue: { autenticado: signal(autenticado) } },
       { provide: SismosServico, useValue: { alertas } },
+      { provide: TempoRealServico, useValue: { avisos$: avisos.asObservable() } },
     ],
   });
   const servico = TestBed.inject(AlarmeServico);
   TestBed.tick(); // executa o effect que busca os alertas
-  return { servico, alertas };
+  return { servico, alertas, avisos };
 }
 
 describe('AlarmeServico', () => {
@@ -63,5 +66,14 @@ describe('AlarmeServico', () => {
     servico.dispensar();
     expect(servico.atual()).toBeNull();
     expect(localStorage.getItem('iot.alarmes.dispensados')).toBeNull();
+  });
+
+  it('um aviso de alerta em tempo real busca os alertas na hora', () => {
+    const { alertas, avisos } = preparar([]);
+    expect(alertas).toHaveBeenCalledTimes(1); // busca inicial
+    avisos.next({ tipo: 'alerta', dados: { id: 5, acao: 'aberto' } });
+    expect(alertas).toHaveBeenCalledTimes(2);
+    avisos.next({ tipo: 'leituras', dados: {} }); // outros tipos nao interessam ao alarme
+    expect(alertas).toHaveBeenCalledTimes(2);
   });
 });

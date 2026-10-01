@@ -1,10 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, filter, forkJoin, switchMap, tap } from 'rxjs';
+import { EMPTY, catchError, filter, forkJoin, map, merge, switchMap, tap } from 'rxjs';
 import { FiltrosSismosServico } from './filtros-sismos.servico';
 import { DiaSismos, FiltrosSismos, PontoMapa, Regiao, TotaisSismos } from './modelos';
 import { diasAntes, hoje, paraDataApi } from './filtros.servico';
 import { SismosServico } from './sismos.servico';
+import { TempoRealServico } from './tempo-real.servico';
 
 // Dados do modulo Sismos, compartilhados entre Resumo, Graficos e Mapa:
 // cada mudanca de filtro faz uma busca so (a anterior e cancelada).
@@ -12,6 +13,7 @@ import { SismosServico } from './sismos.servico';
 export class SismosDados {
   private readonly filtros = inject(FiltrosSismosServico);
   private readonly sismos = inject(SismosServico);
+  private readonly tempoReal = inject(TempoRealServico);
 
   readonly totais = signal<TotaisSismos | null>(null);
   readonly serieDiaria = signal<DiaSismos[]>([]);
@@ -23,14 +25,22 @@ export class SismosDados {
   readonly erro = signal(false);
 
   constructor() {
-    toObservable(this.filtros.consulta)
+    // Mudou o filtro (mostra "carregando") ou chegou um aviso em tempo real (atualiza sem piscar)
+    merge(
+      toObservable(this.filtros.consulta).pipe(map((consulta) => ({ consulta, silencioso: false }))),
+      this.tempoReal.avisos$.pipe(
+        filter((aviso) => aviso.tipo === 'sismos' || aviso.tipo === 'alerta'),
+        map(() => ({ consulta: this.filtros.consulta(), silencioso: true })),
+      ),
+    )
       .pipe(
-        filter((consulta): consulta is FiltrosSismos => consulta !== null),
-        tap(() => {
+        filter((pedido): pedido is { consulta: FiltrosSismos; silencioso: boolean } => pedido.consulta !== null),
+        tap(({ silencioso }) => {
+          if (silencioso) return;
           this.carregando.set(true);
           this.erro.set(false);
         }),
-        switchMap((consulta) =>
+        switchMap(({ consulta }) =>
           forkJoin({
             totais: this.sismos.totais(consulta),
             serie: this.sismos.serieDiaria(consulta),

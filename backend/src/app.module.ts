@@ -11,6 +11,7 @@ import { PerfilModule } from './perfil/perfil.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SaudeModule } from './saude/saude.module';
 import { SismosModule } from './sismos/sismos.module';
+import { TempoRealModule } from './tempo-real/tempo-real.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { UsuariosModule } from './usuarios/usuarios.module';
     LeiturasModule,
     PerfilModule,
     SaudeModule,
+    TempoRealModule,
     SismosModule,
     UsuariosModule,
   ],

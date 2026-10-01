@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Estacao, Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { TempoRealService } from '../tempo-real/tempo-real.service';
 import { AlertasService } from './alertas.service';
 import { regras } from './config';
 import { validarLeitura } from './regras';
@@ -31,6 +32,7 @@ export class IngestaoService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly alertas: AlertasService,
+    private readonly tempoReal: TempoRealService,
   ) {}
 
   async ingerir(estacao: Estacao, leituras: LeituraEntrada[]): Promise<ResultadoIngestao> {
@@ -93,7 +95,10 @@ export class IngestaoService {
     const tentadas = sismografo.length + gps.length + temperatura.length;
 
     // RN-22: chegou leitura -> o alerta de silencio dessa estacao se encerra.
-    if (aceitas > 0) await this.alertas.restabelecerComunicacao(estacao.id);
+    if (aceitas > 0) {
+      await this.alertas.restabelecerComunicacao(estacao.id);
+      this.tempoReal.emitir('leituras', { estacaoId: estacao.id });
+    }
 
     return { aceitas, ignoradas: tentadas - aceitas, rejeitadas };
   }
