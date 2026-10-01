@@ -4,20 +4,23 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CabecalhoPagina } from '../../compartilhado/cabecalho-pagina/cabecalho-pagina';
+import { LinhaTempo } from '../../compartilhado/linha-tempo/linha-tempo';
 import { SeletorPeriodo } from '../../compartilhado/seletor-periodo/seletor-periodo';
 import { EstacoesServico } from '../../core/estacoes.servico';
 import { FiltrosSismosServico } from '../../core/filtros-sismos.servico';
 import { NivelAlerta, Origem } from '../../core/modelos';
+import { SismosDados } from '../../core/sismos-dados.servico';
 
 @Component({
   selector: 'app-modulo-sismos',
-  imports: [CabecalhoPagina, SeletorPeriodo, MatFormFieldModule, MatSelectModule, MatTabsModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [CabecalhoPagina, LinhaTempo, SeletorPeriodo, MatFormFieldModule, MatSelectModule, MatTabsModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './modulo-sismos.html',
   styleUrl: './modulo-sismos.scss',
 })
 export class ModuloSismos {
   protected readonly filtros = inject(FiltrosSismosServico);
   protected readonly estacoes = inject(EstacoesServico);
+  protected readonly dados = inject(SismosDados);
 
   protected readonly abas = [
     { rota: ['/sismos'], rotulo: 'Resumo', exato: true },

@@ -42,7 +42,7 @@ Status: **implementado**. Este documento descreve o design como ele está no có
 
 Barra fixa no topo, sempre visível (no celular, recolhida em um botão):
 
-- Tamanho da fonte (A−, 100%, A+), tema, daltonismo, fonte de leitura (padrão, **OpenDyslexic** ou **Verdana**), reduzir animações, **ler a página** em voz alta e **VLibras**.
+- Tamanho da fonte (A−, 100%, A+), tema, daltonismo, fonte de leitura (padrão, **OpenDyslexic** ou **Verdana**), reduzir animações e **ler a página** em voz alta. O **VLibras** é o botão tradicional do governo, na lateral direita (fora da barra).
 - Preferências guardadas no navegador e aplicadas por atributos no `<html>` (`data-tema`, `data-daltonismo`, `data-fonte`, `data-movimento`).
 - Gráficos e mapa leem as cores por um serviço (o ECharts e o Leaflet não leem variáveis CSS), então também respeitam tema e daltonismo.
 - Cada gráfico tem **tabela equivalente** e o botão **Entenda este gráfico** (o que mostra, como ler, o que observar).

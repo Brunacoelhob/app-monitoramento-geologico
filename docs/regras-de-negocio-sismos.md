@@ -79,7 +79,7 @@ Status: **aprovado e implementado** (backend e frontend). As regras RN-30 em dia
 
 ## 6. Consultas e relatórios
 
-- **RN-23.** Filtros do módulo: período, **região (RN-30)**, magnitude mínima, nível, origem e estação. O padrão é os **últimos 30 dias até hoje**, e o período é escolhido só pelo calendário, sem limite de dias (mesma regra do painel de temperatura).
+- **RN-23.** Filtros do módulo: período, **região (RN-30)**, magnitude mínima, nível, origem e estação. O padrão é os **últimos 30 dias até hoje**, e o período é escolhido pelo calendário, pelos atalhos de 7, 30 e 90 dias ou **arrastando o mouse sobre a linha do tempo** (RN-36), sem limite de dias (mesma regra do painel de temperatura).
 - **RN-24.** Indicadores do painel: eventos no período, maior magnitude, alertas abertos por nível e estações online (com leitura nos últimos 15 minutos) sobre o total de estações ativas.
 - **RN-25.** Relatório em PDF, Excel e CSV de eventos e alertas, respeitando os filtros. Máximo de 500 mil linhas em Excel e CSV. A origem (`REAL` ou `SIMULADO`) aparece em todas as linhas.
 
@@ -99,6 +99,8 @@ Status: **aprovado e implementado** (backend e frontend). As regras RN-30 em dia
 - **RN-33.** **Notificação externa:** se `ALERTA_WEBHOOK_URL` estiver definida, cada alerta novo de nível `ALTO` ou `CRITICO` é enviado por `POST` (JSON com `text`, `content` e os dados do alerta). A falha do envio nunca impede o alerta de ser criado. Réplicas e alertas de nível Atenção não são enviados.
 - **RN-34.** **Usuários:** só o admin lista, cria, troca o papel e remove contas (`/usuarios`). Não há cadastro público. O admin **não pode alterar o próprio papel nem remover a própria conta** (evita ficar sem administrador). Remover uma conta apaga também o avatar e o acervo de imagens dela. A troca de papel vale no próximo login.
 - **RN-35.** **Saúde:** `GET /api/saude` é pública, sem limite de requisições, e confere a API e o banco (`503` se o banco não responde). É usada pelo *healthcheck* do Docker.
+
+- **RN-36.** **Linha do tempo:** uma faixa com os sismos por dia fica acima das abas de Sismos. Arrastar o mouse sobre ela define início e fim do período (do dia do primeiro ao dia do último ponto, inclusive, nunca depois de hoje); o trecho escolhido fica sombreado e todas as abas se atualizam. Os botões de 7, 30 e 90 dias (terminando hoje) e o calendário fazem o mesmo para quem usa só o teclado.
 
 ## Valores configuráveis (ficam no `.env`, não no código)
 

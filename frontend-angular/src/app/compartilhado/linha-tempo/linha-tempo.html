@@ -1,0 +1,36 @@
+<section class="linha" aria-labelledby="titulo-linha">
+  <header>
+    <div>
+      <h2 id="titulo-linha">Linha do tempo</h2>
+      <p>
+        Arraste o mouse sobre as barras para escolher o período.
+        @if (inicio() && fim()) {
+          <strong>Período atual: {{ inicio() | date: 'dd/MM/yyyy' }} a {{ fim() | date: 'dd/MM/yyyy' }}</strong>
+        }
+      </p>
+    </div>
+
+    <div class="atalhos" role="group" aria-label="Períodos rápidos">
+      @for (dias of atalhos; track dias) {
+        <button
+          mat-stroked-button
+          type="button"
+          [class.ativo]="atalhoAtivo() === dias"
+          [attr.aria-pressed]="atalhoAtivo() === dias"
+          (click)="escolherAtalho(dias)"
+        >
+          {{ dias }} dias
+        </button>
+      }
+    </div>
+  </header>
+
+  <div
+    echarts
+    class="grafico"
+    role="img"
+    [attr.aria-label]="resumo()"
+    [options]="opcoes()"
+    (chartInit)="aoIniciar($event)"
+  ></div>
+</section>

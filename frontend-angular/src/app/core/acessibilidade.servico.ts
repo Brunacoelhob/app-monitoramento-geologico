@@ -119,7 +119,8 @@ export class AcessibilidadeServico {
 
   // ---------- VLibras (widget oficial do governo) ----------
 
-  // Carrega o widget na primeira vez que a pagina abre (depende de internet).
+  // Carrega o widget na primeira vez que a pagina abre (depende de internet). O botao fica no lugar padrao do
+  // VLibras: lateral direita da tela.
   iniciarVLibras(): void {
     if (this.vlibrasCarregado) return;
     this.vlibrasCarregado = true;
@@ -138,13 +139,6 @@ export class AcessibilidadeServico {
     // Sem internet o widget simplesmente nao aparece; o resto do sistema segue normal.
     script.onerror = () => document.querySelector('[vw]')?.remove();
     document.body.appendChild(script);
-  }
-
-  abrirLibras(): void {
-    this.iniciarVLibras();
-    // O botao do widget abre o avatar; se o widget ainda esta carregando, tenta de novo.
-    const clicar = () => (document.querySelector('[vw-access-button]') as HTMLElement | null)?.click();
-    setTimeout(clicar, 400);
   }
 
   // ---------- Persistencia ----------

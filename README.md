@@ -26,7 +26,7 @@ Sistema completo de monitoramento: **terremotos do mundo todo** (USGS, com o Jap
 
 ## O que o sistema faz
 
-- **Sismos:** importa terremotos do USGS a cada 10 minutos (Japão M4,0+ e mundo M4,5+). Filtros por período, magnitude, nível, origem, região e proximidade de uma estação. Resumo, gráficos, mapa e tabela, com exportação em **PDF, Excel e CSV**.
+- **Sismos:** importa terremotos do USGS a cada 10 minutos (Japão M4,0+ e mundo M4,5+). Filtros por período (calendário, atalhos de 7/30/90 dias ou **arrastando o mouse sobre a linha do tempo**), magnitude, nível, origem, região e proximidade de uma estação. Resumo, gráficos, mapa e tabela, com exportação em **PDF, Excel e CSV**.
 - **Mapa-múndi clicável:** 12 regiões sísmicas com contagem de eventos, placas envolvidas e um texto de contexto geológico; limites de placas reais (subducção em destaque).
 - **Alertas:** gerados por magnitude **apenas em regiões monitoradas** (hoje, o Japão): Atenção (M4,5), Alto (M5,5), Crítico (M6,5). Agrupam réplicas, têm histórico completo e fluxo *aberto → reconhecido → encerrado*. Também há alerta de **estação sem comunicação**.
 - **Alarme em tela cheia:** alertas Alto/Crítico acendem uma luz vermelha suave nas bordas e um aviso com *o que aconteceu* e *o que verificar*. Pulso lento (menos de 1 Hz), versão estática com "reduzir animações", fechável com `Esc`, lembra o que já foi dispensado.
@@ -41,7 +41,7 @@ Sistema completo de monitoramento: **terremotos do mundo todo** (USGS, com o Jap
 
 Pensada desde o início, não como complemento:
 
-- Barra fixa no topo: **tamanho da fonte** (A−/A+), **tema** claro/escuro/alto contraste, **daltonismo** (protanopia, deuteranopia, tritanopia), **fontes para dislexia** (OpenDyslexic e Verdana), **reduzir animações**, **ler a página em voz alta** e **VLibras** (Libras).
+- Barra fixa no topo: **tamanho da fonte** (A−/A+), **tema** claro/escuro/alto contraste, **daltonismo** (protanopia, deuteranopia, tritanopia), **fontes para dislexia** (OpenDyslexic e Verdana), **reduzir animações** e **ler a página em voz alta**. O **VLibras** (Libras) fica no botão tradicional na lateral direita da tela.
 - Nível de alerta nunca depende só da cor: cada nível tem ícone e forma próprios; cada gráfico tem a tabela equivalente.
 - Navegação por teclado, link "Pular para o conteúdo", landmarks e foco visível.
 - **Auditoria automatizada com axe-core** (WCAG 2.0/2.1 A e AA + boas práticas) nas 13 telas, nos temas claro e escuro: **sem violações no código da aplicação**. O único apontamento restante é o ícone do widget de terceiros VLibras.

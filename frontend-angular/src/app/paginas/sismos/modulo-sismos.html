@@ -53,6 +53,13 @@
   </mat-form-field>
 </section>
 
+<app-linha-tempo
+  [serie]="dados.serieGeral()"
+  [inicio]="filtros.inicio()"
+  [fim]="filtros.fim()"
+  (selecionado)="filtros.definirPeriodo($event.inicio, $event.fim)"
+/>
+
 <nav mat-tab-nav-bar [tabPanel]="painel" class="abas" aria-label="Seções de Sismos">
   @for (aba of abas; track aba.rotulo) {
     <a
