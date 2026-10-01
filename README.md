@@ -6,6 +6,7 @@
 ![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
+![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-green)
 
 Sistema completo de monitoramento: **terremotos do mundo todo** (USGS, com o Japão em detalhe), **limites reais entre as placas tectônicas**, **alertas por magnitude** e **estações IoT** com sismógrafo, GPS e sensores de temperatura. O backend concentra toda a regra de negócio, autenticação e validação; o frontend é um painel acessível e responsivo.
 
@@ -248,6 +249,10 @@ Dataset: [Temperature Readings: IoT Devices](https://www.kaggle.com/datasets/atu
 | Login retorna 429 | Limite de 5 tentativas por minuto. Aguarde |
 | Mapa ou gráficos vazios | Falta `npm run sismos:semear`, ou o USGS está fora do ar (veja o log do backend) |
 | Teste de integração recusa o banco | `DATABASE_URL_TESTE` ausente ou sem `test` no nome |
+
+## Licença
+
+O código está sob a licença [MIT](LICENSE). Os **dados** têm licenças próprias: o dataset de temperatura (Kaggle), o catálogo do USGS e os limites de placas (ODC-By) são de terceiros e não estão cobertos por ela; veja [Fontes de dados e créditos](#fontes-de-dados-e-créditos).
 
 ## Autora
 
