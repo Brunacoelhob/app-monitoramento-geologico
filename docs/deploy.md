@@ -13,8 +13,8 @@ Guia para colocar o sistema no ar em **uma máquina Linux com Docker** (uma VPS,
 ## 2. Configurar os segredos
 
 ```bash
-git clone https://github.com/Brunacoelhob/pipeline-iot-docker-postgres.git
-cd pipeline-iot-docker-postgres
+git clone https://github.com/brunacoelhoc/app-monitoramento-geologico.git
+cd app-monitoramento-geologico
 cp .env.example .env
 ```
 
@@ -68,7 +68,7 @@ docker exec postgres-iot pg_dump -U "$DB_USER" -d "$DB_NAME" -Fc > backup-$(date
 docker exec -i postgres-iot pg_restore -U "$DB_USER" -d "$DB_NAME" --clean --if-exists < backup-AAAA-MM-DD.dump
 
 # backup das imagens enviadas
-docker run --rm -v pipeline-iot-docker-postgres_iot_uploads:/dados -v "$PWD":/backup alpine tar czf /backup/uploads-$(date +%F).tgz -C /dados .
+docker run --rm -v app-monitoramento-geologico_iot_uploads:/dados -v "$PWD":/backup alpine tar czf /backup/uploads-$(date +%F).tgz -C /dados .
 ```
 
 Agende o `pg_dump` (cron) e copie os arquivos para fora do servidor. O nome do volume depende do nome da pasta do projeto: confira com `docker volume ls`.

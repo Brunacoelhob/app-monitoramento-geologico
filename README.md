@@ -1,6 +1,6 @@
 # Monitoramento geológico: terremotos, placas tectônicas e temperatura
 
-[![CI](https://github.com/Brunacoelhob/pipeline-iot-docker-postgres/actions/workflows/ci.yml/badge.svg)](https://github.com/Brunacoelhob/pipeline-iot-docker-postgres/actions/workflows/ci.yml)
+[![CI](https://github.com/brunacoelhoc/app-monitoramento-geologico/actions/workflows/ci.yml/badge.svg)](https://github.com/brunacoelhoc/app-monitoramento-geologico/actions/workflows/ci.yml)
 ![Node](https://img.shields.io/badge/Node-22-339933?logo=node.js&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs&logoColor=white)
 ![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)
