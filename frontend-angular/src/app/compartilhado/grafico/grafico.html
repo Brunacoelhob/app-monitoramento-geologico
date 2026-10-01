@@ -6,10 +6,18 @@
         <p>{{ descricao() }}</p>
       }
     </div>
-    <button mat-stroked-button type="button" [disabled]="!pronto()" (click)="baixarImagem()">
-      <mat-icon aria-hidden="true">image</mat-icon>
-      Baixar imagem
-    </button>
+    <div class="acoes">
+      @if (explicacao()) {
+        <button mat-button type="button" (click)="entender()">
+          <mat-icon aria-hidden="true">insights</mat-icon>
+          Entenda este gráfico
+        </button>
+      }
+      <button mat-stroked-button type="button" [disabled]="!pronto()" (click)="baixarImagem()">
+        <mat-icon aria-hidden="true">image</mat-icon>
+        Baixar imagem
+      </button>
+    </div>
   </header>
 
   <div

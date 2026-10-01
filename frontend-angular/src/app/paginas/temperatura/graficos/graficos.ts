@@ -3,6 +3,9 @@ import type { EChartsCoreOption } from 'echarts/core';
 import { BotaoRelatorio } from '../../../compartilhado/botao-relatorio/botao-relatorio';
 import { Grafico } from '../../../compartilhado/grafico/grafico';
 import { provedorGraficos } from '../../../compartilhado/grafico/echarts-config';
+import { baseGrafico, degrade, eixoCategoria, eixoTempo, eixoValor, zoomSuave } from '../../../compartilhado/grafico/estilo-grafico';
+import type { ExplicacaoGrafico } from '../../../compartilhado/grafico/explicacao-dialog/explicacao-dialog';
+
 import { AcessibilidadeServico } from '../../../core/acessibilidade.servico';
 import { FiltrosServico } from '../../../core/filtros.servico';
 import { Sentido } from '../../../core/modelos';
@@ -33,33 +36,36 @@ export class Graficos {
     return (['INTERNO', 'EXTERNO'] as Sentido[]).filter((s) => this.dados.serie().some((p) => p.sentido === s));
   }
 
-  private eixos() {
-    const c = this.a11y.cores();
-    return {
-      texto: c.textoSecundario,
-      linha: c.linha,
-      estiloEixo: { axisLabel: { color: c.textoSecundario }, axisLine: { lineStyle: { color: c.linha } } },
-    };
-  }
+  protected readonly explicaLinha: ExplicacaoGrafico = {
+    oQueMostra: 'Como a temperatura média mudou ao longo do período, hora a hora, dentro e fora do ambiente monitorado.',
+    comoLer: 'Cada linha é um sentido de leitura: interno (tracejada, azul) e externo (contínua, laranja). Passe o mouse para ver o valor de cada hora e arraste a barra inferior para aproximar.',
+    oQueObservar: 'Se a linha interna acompanha a externa, o ambiente está pouco isolado. Saltos bruscos podem indicar falha no sensor ou uma mudança real de condição.',
+  };
+  protected readonly explicaHora: ExplicacaoGrafico = {
+    oQueMostra: 'A temperatura média em cada hora do dia (0h a 23h), somando todos os dias do período.',
+    comoLer: 'Cada barra é uma hora do dia. Compare a altura das barras azuis (interno) e laranjas (externo) na mesma hora.',
+    oQueObservar: 'Mostra o ritmo diário: em que horas esquenta e esfria. É útil para achar o melhor horário de medir ou de agir.',
+  };
 
   protected readonly opcoesLinha = computed<EChartsCoreOption>(() => {
-    const { texto, linha, estiloEixo } = this.eixos();
+    const c = this.a11y.cores();
+    const base = baseGrafico(c, this.a11y.reduzirMovimento());
     return {
+      ...base,
       useUTC: true,
-      backgroundColor: 'transparent',
-      textStyle: { color: texto },
-      tooltip: { trigger: 'axis' },
-      legend: { top: 0, textStyle: { color: texto } },
+      tooltip: { ...base.tooltip, trigger: 'axis' },
       grid: { left: 56, right: 24, top: 44, bottom: 72 },
-      xAxis: { type: 'time', ...estiloEixo },
-      yAxis: { type: 'value', name: 'Temperatura média (°C)', scale: true, nameTextStyle: { color: texto }, ...estiloEixo, splitLine: { lineStyle: { color: linha } } },
-      dataZoom: [{ type: 'inside' }, { type: 'slider', height: 22, bottom: 16 }],
+      xAxis: eixoTempo(c),
+      yAxis: eixoValor(c, { name: 'Temperatura média (°C)', scale: true }),
+      dataZoom: zoomSuave(c),
       series: this.sentidosPresentes().map((sentido) => ({
         name: ROTULOS[sentido],
         type: 'line',
+        smooth: true,
         showSymbol: false,
         itemStyle: { color: this.corSentido()[sentido] },
-        lineStyle: { width: 2, type: sentido === 'EXTERNO' ? 'solid' : 'dashed' }, // forma diferente alem da cor
+        lineStyle: { width: 2.5, type: sentido === 'EXTERNO' ? 'solid' : 'dashed' }, // forma diferente alem da cor
+        areaStyle: { color: degrade(this.corSentido()[sentido], 0.28, 0) },
         data: this.dados.serie().filter((p) => p.sentido === sentido).map((p) => [p.hora, p.temperaturaMedia]),
       })),
     };
@@ -85,19 +91,19 @@ export class Graficos {
   protected readonly horas = Array.from({ length: 24 }, (_, h) => h);
 
   protected readonly opcoesHoraDoDia = computed<EChartsCoreOption>(() => {
-    const { texto, linha, estiloEixo } = this.eixos();
+    const c = this.a11y.cores();
+    const base = baseGrafico(c, this.a11y.reduzirMovimento());
     return {
-      backgroundColor: 'transparent',
-      textStyle: { color: texto },
-      tooltip: { trigger: 'axis' },
-      legend: { top: 0, textStyle: { color: texto } },
+      ...base,
+      tooltip: { ...base.tooltip, trigger: 'axis' },
       grid: { left: 56, right: 24, top: 44, bottom: 32 },
-      xAxis: { type: 'category', data: this.horas.map((h) => `${String(h).padStart(2, '0')}h`), ...estiloEixo },
-      yAxis: { type: 'value', name: '°C', scale: true, nameTextStyle: { color: texto }, ...estiloEixo, splitLine: { lineStyle: { color: linha } } },
+      xAxis: eixoCategoria(c, this.horas.map((h) => `${String(h).padStart(2, '0')}h`)),
+      yAxis: eixoValor(c, { name: '°C', scale: true }),
       series: this.sentidosPresentes().map((sentido) => ({
         name: ROTULOS[sentido],
         type: 'bar',
-        itemStyle: { color: this.corSentido()[sentido] },
+        barMaxWidth: 16,
+        itemStyle: { color: degrade(this.corSentido()[sentido], 0.95, 0.45), borderRadius: [6, 6, 0, 0] },
         data: this.mediaPorHora()[sentido],
       })),
     };

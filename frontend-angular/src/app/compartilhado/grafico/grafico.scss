@@ -28,6 +28,12 @@
   }
 }
 
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .grafico {
   width: 100%;
 }

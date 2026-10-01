@@ -6,6 +6,7 @@ import { EstacoesService } from './estacoes.service';
 import { EventosService } from './eventos.service';
 import { IngestaoController } from './ingestao.controller';
 import { IngestaoService } from './ingestao.service';
+import { NotificadorService } from './notificador.service';
 import { RelatorioSismosService } from './relatorio-sismos.service';
 import { SimuladorService } from './simulador.service';
 import { AlertasController, EstacoesController, EventosController } from './sismos.controller';
@@ -18,6 +19,7 @@ import { UsgsService } from './usgs.service';
   providers: [
     EstacoesService,
     AlertasService,
+    NotificadorService,
     EventosService,
     IngestaoService,
     UsgsService,

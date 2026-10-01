@@ -9,6 +9,7 @@ import { SeloOrigem } from '../../compartilhado/selo-origem/selo-origem';
 import { EstacoesServico } from '../../core/estacoes.servico';
 import { AlertaResumo } from '../../core/modelos';
 import { FUSO_JAPAO } from '../../core/nivel';
+import { FiltrosSismosServico } from '../../core/filtros-sismos.servico';
 import { SismosDados } from '../../core/sismos-dados.servico';
 import { SismosServico } from '../../core/sismos.servico';
 import { TemperaturaDados } from '../../core/temperatura-dados.servico';
@@ -26,6 +27,7 @@ export class Inicio {
   protected readonly estacoes = inject(EstacoesServico);
   private readonly api = inject(SismosServico);
   private readonly roteador = inject(Router);
+  private readonly filtros = inject(FiltrosSismosServico);
 
   protected readonly alertas = signal<AlertaResumo[]>([]);
   protected readonly fuso = FUSO_JAPAO;
@@ -36,7 +38,14 @@ export class Inicio {
   });
   protected readonly sufixoEstacoes = computed(() => ` de ${this.sismos.totais()?.estacoes.ativas ?? 0}`);
 
+  // Clicar em uma regiao do mapa abre a aba Mapa ja filtrada por ela
+  protected escolherRegiao(codigo: string | null) {
+    this.filtros.definirRegiao(codigo);
+    if (codigo) this.roteador.navigate(['/sismos', 'mapa']);
+  }
+
   constructor() {
+    this.filtros.definirRegiao(null); // a visao geral mostra o mundo todo
     this.estacoes.carregar().subscribe({ error: () => undefined });
     this.api.alertas({ estado: 'ABERTO' }, 1, 5).subscribe({ next: (r) => this.alertas.set(r.itens), error: () => undefined });
   }

@@ -12,6 +12,7 @@
     titulo="Temperatura média por hora"
     descricao="Arraste a barra inferior ou use o scroll do mouse para aproximar. A linha tracejada é o sensor interno."
     arquivo="temperatura-por-hora"
+    [explicacao]="explicaLinha"
     altura="26rem"
     [opcoes]="opcoesLinha()"
   />
@@ -20,6 +21,7 @@
     titulo="Temperatura média por hora do dia"
     descricao="Média de todos os dias do período."
     arquivo="temperatura-por-hora-do-dia"
+    [explicacao]="explicaHora"
     [opcoes]="opcoesHoraDoDia()"
   >
     <details class="tabela">

@@ -1,53 +1,95 @@
-# Monitoramento IoT: PostgreSQL + Backend NestJS + Frontend Streamlit
+# Monitoramento geológico: terremotos, placas tectônicas e temperatura
 
-Sistema que armazena leituras de sensores de temperatura e as exibe em um painel. Toda a regra de negócio, autenticação, autorização e validação ficam no **backend**; o **frontend é só um visualizador** e nunca acessa o banco.
+[![CI](https://github.com/Brunacoelhob/pipeline-iot-docker-postgres/actions/workflows/ci.yml/badge.svg)](https://github.com/Brunacoelhob/pipeline-iot-docker-postgres/actions/workflows/ci.yml)
+![Node](https://img.shields.io/badge/Node-22-339933?logo=node.js&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 
-Dataset: [Temperature Readings: IoT Devices](https://www.kaggle.com/datasets/atulanandjha/temperature-readings-iot-devices) (Kaggle). Confira a licença antes de redistribuir.
+Sistema completo de monitoramento: **terremotos do mundo todo** (USGS, com o Japão em detalhe), **limites reais entre as placas tectônicas**, **alertas por magnitude** e **estações IoT** com sismógrafo, GPS e sensores de temperatura. O backend concentra toda a regra de negócio, autenticação e validação; o frontend é um painel acessível e responsivo.
+
+> Projeto de portfólio. **Não é um sistema oficial de alerta sísmico.** Para alertas oficiais, consulte a Agência Meteorológica do Japão (JMA). Todo dado simulado aparece sempre identificado como **Simulado**.
+
+![Início](docs/img/inicio.png)
+
+<table>
+  <tr>
+    <td><img src="docs/img/sismos-mapa-japao.png" alt="Mapa de sismos com região do Japão selecionada"></td>
+    <td><img src="docs/img/sismos-graficos.png" alt="Gráficos de sismos"></td>
+  </tr>
+  <tr>
+    <td><img src="docs/img/alarme.png" alt="Alarme em tela cheia para alerta crítico"></td>
+    <td><img src="docs/img/swagger.png" alt="Documentação Swagger da API"></td>
+  </tr>
+</table>
+
+## O que o sistema faz
+
+- **Sismos:** importa terremotos do USGS a cada 10 minutos (Japão M4,0+ e mundo M4,5+). Filtros por período, magnitude, nível, origem, região e proximidade de uma estação. Resumo, gráficos, mapa e tabela, com exportação em **PDF, Excel e CSV**.
+- **Mapa-múndi clicável:** 12 regiões sísmicas com contagem de eventos, placas envolvidas e um texto de contexto geológico; limites de placas reais (subducção em destaque).
+- **Alertas:** gerados por magnitude **apenas em regiões monitoradas** (hoje, o Japão): Atenção (M4,5), Alto (M5,5), Crítico (M6,5). Agrupam réplicas, têm histórico completo e fluxo *aberto → reconhecido → encerrado*. Também há alerta de **estação sem comunicação**.
+- **Alarme em tela cheia:** alertas Alto/Crítico acendem uma luz vermelha suave nas bordas e um aviso com *o que aconteceu* e *o que verificar*. Pulso lento (menos de 1 Hz), versão estática com "reduzir animações", fechável com `Esc`, lembra o que já foi dispensado.
+- **Notificação externa (opcional):** defina `ALERTA_WEBHOOK_URL` e cada alerta Alto/Crítico é enviado por webhook (Slack, Discord, Teams ou qualquer endpoint).
+- **Estações IoT:** sismógrafo, GPS e temperatura, reais ou simuladas, autenticadas por **chave de API** exibida uma única vez. Ingestão em lote (até 500 leituras) com validação por leitura.
+- **Temperatura:** leituras interna/externa, totais, série por hora e relatórios (módulo original do projeto, sobre o dataset do Kaggle).
+- **Gráficos explicados:** cada gráfico tem o botão **Entenda este gráfico** (o que mostra, como ler, o que observar) e baixa em PNG.
+- **Gestão de usuários** (somente ADMIN): criar contas, trocar papel, remover. Não há cadastro público.
+- **Perfil:** dados pessoais com máscara e validação (CPF, celular, CEP com **ViaCEP**), troca de senha, avatar e acervo de imagens com upload.
+
+### Acessibilidade
+
+Pensada desde o início, não como complemento:
+
+- Barra fixa no topo: **tamanho da fonte** (A−/A+), **tema** claro/escuro/alto contraste, **daltonismo** (protanopia, deuteranopia, tritanopia), **fontes para dislexia** (OpenDyslexic e Verdana), **reduzir animações**, **ler a página em voz alta** e **VLibras** (Libras).
+- Nível de alerta nunca depende só da cor: cada nível tem ícone e forma próprios; cada gráfico tem a tabela equivalente.
+- Navegação por teclado, link "Pular para o conteúdo", landmarks e foco visível.
+- **Auditoria automatizada com axe-core** (WCAG 2.0/2.1 A e AA + boas práticas) nas 13 telas, nos temas claro e escuro: **sem violações no código da aplicação**. O único apontamento restante é o ícone do widget de terceiros VLibras.
 
 ## Arquitetura
 
-```
-Navegador ──► Frontend (Streamlit :8501) ──► Backend (NestJS :3000) ──► PostgreSQL (:5432)
-                    só exibe                 login, papéis, validação      só o backend acessa
-                                             Prisma ORM
+```mermaid
+flowchart LR
+    U([Navegador]) --> N[nginx :8080<br/>Angular 22]
+    N -- /api --> B[Backend NestJS :3000<br/>JWT · papéis · validação · Swagger]
+    B --> P[(PostgreSQL 16)]
+    B -- a cada 10 min --> G[USGS<br/>catálogo de terremotos]
+    B -- webhook --> W[Slack / Discord / Teams]
+    E[Estações IoT<br/>ou simulador] -- x-chave-estacao --> B
 ```
 
-O Docker usa duas redes: `rede_banco` (banco + backend) e `rede_app` (backend + frontend). O frontend não enxerga o banco.
+O Docker usa duas redes: `rede_banco` (banco + backend) e `rede_app` (backend + frontend). **O frontend nunca enxerga o banco.**
+
+| Camada | Tecnologias |
+|---|---|
+| Backend | NestJS 10, Prisma, PostgreSQL 16, JWT, bcrypt, Helmet, Throttler, Swagger/OpenAPI, PDFKit, ExcelJS |
+| Frontend | Angular 22 (zoneless + Signals), Angular Material, ECharts, Leaflet, Vanta.js |
+| Qualidade | Jest, Supertest, Vitest, axe-core, GitHub Actions |
+| Infra | Docker Compose, nginx sem privilégios |
 
 ```
 .
-├── backend/               API NestJS + Prisma
-│   ├── prisma/            schema.prisma e migrations
-│   ├── scripts/           importar-csv.ts e criar-usuarios.ts
-│   └── src/
-│       ├── auth/          login (JWT), guards de autenticação e papéis
-│       ├── leituras/      consultas, cadastro e tratamento dos dados
-│       ├── prisma/        acesso ao banco
-│       └── config/        validação das variáveis de ambiente
-├── frontend/              painel Streamlit (somente leitura, via API)
-├── data/                  CSV de origem
-├── docker-compose.yml
-└── .env.example
+├── backend/                API NestJS + Prisma
+│   ├── prisma/             schema.prisma e migrations
+│   ├── scripts/            criar-usuarios, importar-csv, semear-sismos, testar-regras-alertas
+│   ├── src/
+│   │   ├── auth/           login (JWT), guards de autenticação e papéis
+│   │   ├── leituras/       módulo de temperatura
+│   │   ├── sismos/         estações, ingestão, USGS, alertas, simulador, regiões, relatórios
+│   │   ├── usuarios/       gestão de contas (admin)
+│   │   ├── perfil/         perfil, avatar e acervo de imagens
+│   │   ├── saude/          GET /api/saude (healthcheck)
+│   │   └── comum/          Swagger e modelos de resposta
+│   └── test/               testes de integração (API inteira + banco de teste)
+├── frontend-angular/       painel Angular (menu lateral, acessibilidade, gráficos, mapa)
+├── docs/                   regras de negócio e briefing de design
+├── data/                   CSV de origem (temperatura)
+└── docker-compose.yml
 ```
 
-## Segurança (aplicada no backend)
-
-- **Autenticação:** JWT (expira em 1h por padrão). Todas as rotas exigem token, exceto `POST /api/auth/login`.
-- **Autorização:** papéis `ADMIN` e `VISUALIZADOR`. Só o `ADMIN` cadastra leituras.
-- **Sem cadastro público:** usuários só são criados pelo script `criar-usuarios`.
-- **Senhas** guardadas com bcrypt; login com mensagem única para email/senha errados.
-- **Limite de requisições:** 100/min por IP, e 5/min no login (proteção contra força bruta).
-- **Validação:** `ValidationPipe` rejeita campos desconhecidos, tipos errados e paginação acima de 100. Consultas SQL são parametrizadas (Prisma).
-- **Consistência:** chave primária, `id` único (conflito devolve 409), faixa de temperatura de -50 a 150 °C, enums para o sentido.
-- **Cabeçalhos** de segurança com Helmet e CORS restrito a `CORS_ORIGENS`.
-- **Containers** do backend e frontend sem root; portas publicadas só em `127.0.0.1`.
-- **Segredos** só no `.env`, que está no `.gitignore`.
-
-## Pré-requisitos
-
-Docker e Docker Compose. Para rodar fora do Docker: Node 22+ e Python 3.10+.
-
 ## Como executar
+
+**Pré-requisitos:** Docker e Docker Compose. Para desenvolver: Node 22+.
 
 1. **Configure o ambiente**
 
@@ -55,7 +97,7 @@ Docker e Docker Compose. Para rodar fora do Docker: Node 22+ e Python 3.10+.
    cp .env.example .env
    ```
 
-   No `.env`, defina `DB_PASS` (e a mesma senha em `DATABASE_URL`), gere o `JWT_SECRET` conforme o comentário do arquivo e escolha as senhas de `ADMIN_SENHA` e `VISUALIZADOR_SENHA`. Se a porta 5432 estiver ocupada na sua máquina, mude `DB_PORT` e a porta em `DATABASE_URL`.
+   No `.env`, defina `DB_PASS` (e a mesma senha em `DATABASE_URL`), gere o `JWT_SECRET` conforme o comentário do arquivo e escolha `ADMIN_SENHA` e `VISUALIZADOR_SENHA` (mínimo de 10 caracteres). Se a porta 5432 estiver ocupada, mude `DB_PORT` e a porta em `DATABASE_URL`.
 
 2. **Suba o banco e prepare os dados** (uma única vez)
 
@@ -65,66 +107,132 @@ Docker e Docker Compose. Para rodar fora do Docker: Node 22+ e Python 3.10+.
    npm install
    npm run prisma:migrar      # cria as tabelas
    npm run criar-usuarios     # cria admin e visualizador
-   npm run importar-csv       # carrega data/temperature_readings.csv
+   npm run importar-csv       # carrega o dataset de temperatura
+   npm run sismos:semear      # 4 estações simuladas, leituras e os sismos do USGS
    cd ..
    ```
 
-   `importar-csv` pode rodar de novo sem duplicar (registros com `id` existente são ignorados). Aceita outro arquivo: `npm run importar-csv -- caminho.csv`.
-
-3. **Suba backend e frontend**
+3. **Suba tudo**
 
    ```bash
    docker compose up -d --build
    ```
 
-   Painel em http://localhost:8501. Entre com o email e a senha do `VISUALIZADOR_*` ou `ADMIN_*` que você definiu no `.env`.
+   - Painel: http://localhost:8080 (entre com o e-mail e a senha de `ADMIN_*` ou `VISUALIZADOR_*`)
+   - Saúde da API: http://localhost:3000/api/saude
+   - O Swagger fica **desligado no Docker** (modo produção); para vê-lo, rode o backend em desenvolvimento (`npm run start:dev`) e abra http://localhost:3000/api/docs
 
-### Desenvolvimento sem Docker (backend e frontend)
+   O backend tem *healthcheck*; o frontend só sobe depois que a API responde.
+
+### Desenvolvimento
 
 ```bash
 docker compose up -d db-iot
-cd backend && npm run start:dev                  # API em :3000
-cd frontend && pip install -r requirements.txt && streamlit run app.py
+cd backend && npm run start:dev                  # API em :3000 (USGS a cada 10 min, simulador a cada 1 min)
+cd frontend-angular && npm install && npm start  # http://localhost:4200 (proxy de /api para :3000)
 ```
 
-## API
+`SISMOS_AGENDADOR=false` desliga as tarefas em segundo plano.
+
+## API e documentação
 
 Prefixo `/api`. Envie `Authorization: Bearer <token>`.
 
-| Método | Rota | Papel | Descrição |
-|---|---|---|---|
-| POST | `/auth/login` | público | `{ email, senha }` → `{ token, usuario }` |
-| GET | `/auth/eu` | logado | Dados do usuário do token |
-| GET | `/leituras` | logado | Lista paginada. Filtros: `inicio`, `fim`, `sentido`, `pagina`, `limite` (máx. 100) |
-| GET | `/leituras/periodo` | logado | Menor e maior data disponíveis |
-| GET | `/leituras/totais` | logado | Total, temperatura média e salas |
-| GET | `/leituras/serie-horaria` | logado | Média por hora e sentido |
-| POST | `/leituras` | ADMIN | Cadastra uma leitura |
+**Swagger em `http://localhost:3000/api/docs`** (só em desenvolvimento, com `npm run start:dev`; desligado em produção/Docker): as 44 rotas com descrição, parâmetros com exemplo, limites, respostas e erros por status. O login preenche o cadeado **Authorize** sozinho; os uploads (avatar e acervo) têm botão de escolher arquivo; relatórios e imagens têm link de download. O JSON OpenAPI fica em `/api/docs-json`.
 
-`sentido` aceita `INTERNO` ou `EXTERNO`; `inicio` e `fim` no formato `aaaa-mm-dd`.
+| Grupo | Rotas principais |
+|---|---|
+| Autenticação | `POST /auth/login` · `GET /auth/eu` |
+| Temperatura | `GET /leituras` · `/periodo` · `/totais` · `/serie-horaria` · `/relatorio` · `POST /leituras` (admin) |
+| Estações | `GET /estacoes` · `/:id` · `/:id/series` · admin: `POST`, `PUT /:id`, `PUT /:id/situacao`, `POST /:id/chave`, `POST /:id/sensores` |
+| Ingestão | `POST /ingestao/leituras` (cabeçalho `x-chave-estacao`) |
+| Sismos | `GET /eventos` · `/regioes` · `/totais` · `/serie-diaria` · `/mapa` · `/periodo` · `/relatorio` · `POST /eventos/sincronizar` (admin) |
+| Alertas | `GET /alertas` · `/:id` · admin: `PUT /:id/reconhecer`, `PUT /:id/encerrar` |
+| Usuários (admin) | `GET/POST /usuarios` · `PUT /usuarios/:id/papel` · `DELETE /usuarios/:id` |
+| Perfil | `GET/PUT /perfil` · `PUT /perfil/senha` · `/perfil/avatar` · `/perfil/acervo` |
+| Saúde | `GET /saude` (pública) |
 
-## Banco de dados (Prisma)
-
-- `leituras_temperatura`: `id` (PK), `sala`, `data_leitura`, `temperatura` (decimal 5,1), `sentido`, com índice por data.
-- `usuarios`: `email` (único), `senha_hash`, `papel`.
-- Mudou o `schema.prisma`? Rode `npm run prisma:migrar:dev` para gerar a migration.
-
-## Decisões de dados
-
-- Colunas do CSV renomeadas: `room_id/id` → `sala`, `noted_date` → `data_leitura`, `temp` → `temperatura`, `out/in` → `sentido`.
-- Só o `id` repetido é descartado. O CSV tem cerca de 60 mil leituras iguais com ids diferentes, mantidas por poderem ser legítimas. Para removê-las, altere `removerIdsRepetidos` em `backend/src/leituras/tratamento.ts`.
-- Uma linha inválida no CSV aborta a importação inteira; nada é carregado pela metade.
-- Datas no formato `dd-mm-aaaa hh:mm`, guardadas como UTC.
-
-## Testes
+## Testes e CI
 
 ```bash
 cd backend
-npm test
+npm test                # 51 testes unitários (regras puras: alertas, réplicas, CPF, CSV, webhook)
+npm run test:e2e        # 32 testes de integração: API inteira + banco de teste isolado
 npx tsc --noEmit
+
+cd ../frontend-angular
+npm test -- --watch=false   # 13 testes (níveis de magnitude, horário JST, alarme em tela cheia)
 ```
 
-O GitHub Actions (`.github/workflows/ci.yml`) roda checagem de tipos, testes e build do backend.
+Os testes de integração sobem a aplicação com a **mesma configuração de produção** e cobrem login, permissões por papel, ingestão com chave de estação (repetidas, rejeitadas, chave trocada, estação inativa), o fluxo completo de alertas, filtros por região, gestão de usuários e upload de arquivos. Usam um banco exclusivo: defina `DATABASE_URL_TESTE` (o nome **precisa conter `test`**; o teste recusa qualquer outro, para nunca apagar o banco de desenvolvimento).
+
+```bash
+docker exec postgres-iot psql -U postgres -c "CREATE DATABASE iot_test"   # uma vez
+```
+
+O **GitHub Actions** (`.github/workflows/ci.yml`) roda a cada push: backend (tipos, unitários, integração com PostgreSQL real, build), frontend (testes e build de produção) e construção das imagens Docker.
+
+Verificação das regras de alerta em dados reais do banco de desenvolvimento (cria dados `TESTE-*` e confere 15 regras):
+
+```bash
+npm run sismos:testar-regras            # roda e confere
+npm run sismos:testar-regras -- limpar  # remove os dados de teste
+```
+
+Para publicar em um servidor, veja [docs/deploy.md](docs/deploy.md).
+
+## Segurança (aplicada no backend)
+
+- **Autenticação:** JWT (expira em 1h por padrão). Todas as rotas exigem token, exceto login, saúde e ingestão (que usa a chave da estação).
+- **Autorização:** papéis `ADMIN` e `VISUALIZADOR`, conferidos no servidor. Só o ADMIN cria, altera e remove.
+- **Sem cadastro público:** contas nascem pelo script `criar-usuarios` ou pelo ADMIN.
+- **Senhas** com bcrypt; login com mensagem única para e-mail ou senha errados (não revela quais e-mails existem).
+- **Chaves de estação:** só o hash SHA-256 fica no banco; a chave aparece uma única vez e pode ser trocada (a antiga invalida na hora).
+- **Limite de requisições:** 100/min por IP; 5/min em login, troca de senha e nova chave; 10/min em relatórios.
+- **Validação:** campos desconhecidos são rejeitados, tipos e faixas conferidos, paginação limitada a 100. SQL parametrizado (Prisma).
+- **Uploads:** tipo conferido pelos primeiros bytes (JPG, PNG, GIF, WEBP; SVG recusado), nome aleatório em disco, cada usuário só acessa os próprios arquivos.
+- **Cabeçalhos** de segurança (Helmet), CORS restrito a `CORS_ORIGENS`, containers sem root, portas publicadas só em `127.0.0.1`, segredos só no `.env` (no `.gitignore`).
+- **Limitação conhecida:** o papel vai dentro do token; uma troca de papel vale no próximo login (o token atual expira em até `JWT_EXPIRA_EM`).
+
+## Configuração (`.env`)
+
+| Variável | Função |
+|---|---|
+| `DB_USER` · `DB_PASS` · `DB_NAME` · `DB_PORT` · `DATABASE_URL` | Banco de dados |
+| `JWT_SECRET` · `JWT_EXPIRA_EM` | Assinatura e duração do token |
+| `CORS_ORIGENS` | Origens autorizadas a chamar a API pelo navegador |
+| `ADMIN_EMAIL/SENHA` · `VISUALIZADOR_EMAIL/SENHA` | Contas criadas por `npm run criar-usuarios` |
+| `SISMOS_AGENDADOR` | `false` desliga USGS, simulador e verificação de alertas |
+| `SISMOS_MAGNITUDE_MINIMA` · `SISMOS_MAGNITUDE_MINIMA_MUNDO` | Magnitude mínima importada (Japão / resto do mundo) |
+| `SISMOS_*` (distância, réplicas, encerramento, silêncio, retenção) | Limites das regras, veja [docs/regras-de-negocio-sismos.md](docs/regras-de-negocio-sismos.md) |
+| `ALERTA_WEBHOOK_URL` | Se definida, alertas Alto/Crítico são enviados por POST (JSON) |
+| `DATABASE_URL_TESTE` | Banco exclusivo dos testes de integração |
+
+## Regras de negócio
+
+As regras de alerta, réplicas, estações, ingestão e relatórios estão numeradas em [docs/regras-de-negocio-sismos.md](docs/regras-de-negocio-sismos.md) (RN-01…); as principais são exercitadas pelos testes de integração e pelo script `sismos:testar-regras`. As decisões de design do frontend estão em [docs/briefing-de-design-frontend.md](docs/briefing-de-design-frontend.md).
+
+## Banco de dados (Prisma)
+
+- Temperatura: `leituras_temperatura` (com `estacao_id` e `origem`), `usuarios`, `imagens`.
+- Sismos: `estacoes`, `sensores`, `leituras_sismografo`, `leituras_gps`, `eventos_sismicos`, `alertas`, `alertas_historico`.
+- Mudou o `schema.prisma`? `npm run prisma:migrar:dev` gera a migration; `npm run prisma:migrar` aplica.
+- **Migrations:** a migração inicial foi editada depois de aplicada, então `prisma migrate dev` pode pedir para apagar o banco. Para aplicar novas sem perder dados, gere o SQL com `prisma migrate diff` e aplique com `npm run prisma:migrar` (foi assim que `perfil_e_acervo` foi criada).
+
+## Decisões sobre os dados de temperatura
+
+Dataset: [Temperature Readings: IoT Devices](https://www.kaggle.com/datasets/atulanandjha/temperature-readings-iot-devices) (Kaggle). Confira a licença antes de redistribuir.
+
+- Colunas do CSV renomeadas: `room_id/id` → `sala`, `noted_date` → `data_leitura`, `temp` → `temperatura`, `out/in` → `sentido`.
+- Só o `id` repetido é descartado. O CSV tem cerca de 60 mil leituras iguais com ids diferentes, mantidas por poderem ser legítimas (`removerIdsRepetidos` em `backend/src/leituras/tratamento.ts` altera isso).
+- Uma linha inválida aborta a importação inteira; nada é carregado pela metade.
+- Datas `dd-mm-aaaa hh:mm`, guardadas como UTC. O módulo de sismos mostra o horário do Japão (JST) e identifica o fuso.
+
+## Fontes de dados e créditos
+
+- Terremotos: catálogo do [USGS Earthquake Hazards Program](https://earthquake.usgs.gov/).
+- Limites de placas: Bird (2003), via Hugo Ahlenius/Nordpil (ODC-By).
+- Mapa-base: Esri, HERE, Garmin, OpenStreetMap.
 
 ## Solução de problemas
 
@@ -132,88 +240,11 @@ O GitHub Actions (`.github/workflows/ci.yml`) roda checagem de tipos, testes e b
 |---|---|
 | `Variável de ambiente ... não definida` | O `.env` não existe ou está incompleto |
 | `port is already allocated` / `bind ... proibida` | Porta em uso. Mude `DB_PORT` no `.env` e em `DATABASE_URL` |
-| `password authentication failed` | O volume guarda a senha antiga. Para recomeçar do zero: `docker compose down -v` (apaga os dados) |
+| `password authentication failed` | O volume guarda a senha antiga. Para recomeçar: `docker compose down -v` (apaga os dados) |
 | Login retorna 429 | Limite de 5 tentativas por minuto. Aguarde |
-| Painel diz "Nenhum dado encontrado" | Falta rodar `npm run importar-csv` |
+| Mapa ou gráficos vazios | Falta `npm run sismos:semear`, ou o USGS está fora do ar (veja o log do backend) |
+| Teste de integração recusa o banco | `DATABASE_URL_TESTE` ausente ou sem `test` no nome |
 
 ## Autora
 
 Bruna Coelho
-
-## Frontend Angular (`frontend-angular/`)
-
-Substitui o dashboard Streamlit. Angular 22 + Angular Material + ECharts, consumindo a API do backend.
-
-**Desenvolvimento** (com o banco e o backend no ar):
-
-```bash
-cd frontend-angular
-npm install
-npm start            # http://localhost:4200 (use --port 4300 se a 4200 estiver ocupada)
-```
-
-O `proxy.conf.json` encaminha `/api` para `http://127.0.0.1:3000`, então não há CORS no desenvolvimento.
-
-**Docker** (`docker compose up -d --build`): o nginx serve o Angular em http://localhost:8080 e repassa `/api` para o backend.
-
-| Pasta | Conteúdo |
-|---|---|
-| `src/app/core/` | Autenticação (serviço, interceptor JWT, guards), serviços da API, filtros e tema |
-| `src/app/layout/` | Estrutura com menu lateral e barra superior |
-| `src/app/paginas/` | Login, Painel (KPIs e gráficos) e Leituras (tabela paginada) |
-| `src/app/compartilhado/` | Barra de filtros usada nas duas páginas |
-
-### Funcionalidades do frontend
-
-- **Painel:** hero explicativo com botão de relatório, filtros só por calendário (padrão: últimos 30 dias até hoje, sem limite de intervalo), 4 cartões animados com mini-gráfico e **modal informativo ao clicar em cada cartão**, gráficos ECharts.
-- **Menu lateral recolhível** (o estado fica salvo no navegador).
-- **Relatórios** em **PDF** (resumo + gráfico), **Excel** (abas Resumo, Por dia/mês e Leituras) e **CSV** (dados brutos), sempre respeitando o período e o sentido filtrados.
-- **Perfil:** avatar, dados pessoais e endereço (CPF, celular e CEP com máscara e validação; endereço preenchido pelo **ViaCEP**), troca de senha e **acervo de imagens** com upload, ampliação, download e exclusão.
-
-### Endpoints adicionados (todos exigem JWT)
-
-| Rota | Função |
-|---|---|
-| `GET /api/leituras/relatorio?formato=pdf\|xlsx\|csv&inicio&fim&sentido` | Baixa o relatório (máx. 500 mil linhas para Excel/CSV) |
-| `GET /api/perfil` · `PUT /api/perfil` | Lê e atualiza o perfil do usuário logado |
-| `PUT /api/perfil/senha` | Troca a senha (5 tentativas/min; senha atual errada devolve 422) |
-| `GET/PUT/DELETE /api/perfil/avatar` | Foto de perfil (até 2 MB) |
-| `GET/POST /api/perfil/acervo` · `GET /api/perfil/acervo/:id/arquivo[?baixar=1]` · `DELETE /api/perfil/acervo/:id` | Acervo (até 50 imagens de 5 MB, 10 por envio) |
-
-As imagens ficam em disco na pasta definida por `UPLOADS_DIR` (volume `iot_uploads` no Docker), com nome aleatório. O tipo é conferido pelos primeiros bytes do arquivo (JPG, PNG, GIF ou WEBP; SVG é recusado) e cada usuário só acessa as próprias imagens.
-
-> **Migrations:** a migração inicial foi editada depois de aplicada, então `prisma migrate dev` pede para apagar o banco. Para aplicar migrações novas sem perder dados, gere o SQL com `prisma migrate diff` e aplique com `npm run prisma:migrar` (foi assim que `perfil_e_acervo` foi criada).
-
-
-## Módulo de sismos: backend (Japão)
-
-Regras em [docs/regras-de-negocio-sismos.md](docs/regras-de-negocio-sismos.md). O backend cobre estações e sensores, ingestão por chave, sismos do USGS, alertas, simulador e relatórios.
-
-**Como rodar:**
-
-```bash
-cd backend
-npm run prisma:migrar      # cria as tabelas (e vincula as leituras antigas à estação "legado")
-npm run sismos:semear      # cria 4 estações simuladas, gera leituras e importa os sismos do USGS
-npm run start:dev          # o agendador importa o USGS a cada 10 min e roda o simulador a cada minuto
-```
-
-`SISMOS_AGENDADOR=false` desliga as tarefas em segundo plano. Os limites das regras (distância, tempos, magnitude mínima) estão no `.env.example`.
-
-**Verificação das regras** (cria dados de teste `TESTE-*` no banco e confere 15 regras de alerta):
-
-```bash
-npm run sismos:testar-regras            # roda e confere
-npm run sismos:testar-regras -- limpar  # remove os dados de teste
-```
-
-| Rota | Quem | Função |
-|---|---|---|
-| `GET /api/estacoes` · `/:id` · `/:id/series?horas=` | todos | Estações, status online e séries de sismógrafo, GPS e temperatura |
-| `POST /api/estacoes` · `PUT /:id` · `PUT /:id/situacao` · `POST /:id/chave` · `POST /:id/sensores` | admin | Gerencia estações; a chave de API aparece uma única vez |
-| `POST /api/ingestao/leituras` | chave da estação (`x-chave-estacao`) | Recebe leituras (até 500 por chamada) |
-| `GET /api/eventos` · `/totais` · `/serie-diaria` · `/mapa` · `/periodo` | todos | Sismos com filtros (período, magnitude, nível, origem, estação) |
-| `GET /api/eventos/relatorio?formato=pdf\|xlsx\|csv` | todos | Relatório de eventos e alertas |
-| `POST /api/eventos/sincronizar` | admin | Força a sincronização com o USGS |
-| `GET /api/alertas` · `/:id` | todos | Alertas, com réplicas, histórico e estações próximas |
-| `PUT /api/alertas/:id/reconhecer` · `/encerrar` | admin | Muda o estado do alerta |

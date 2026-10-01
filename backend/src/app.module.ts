@@ -9,7 +9,9 @@ import { validarVariaveis } from './config/variaveis';
 import { LeiturasModule } from './leituras/leituras.module';
 import { PerfilModule } from './perfil/perfil.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { SaudeModule } from './saude/saude.module';
 import { SismosModule } from './sismos/sismos.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 
 @Module({
   imports: [
@@ -25,7 +27,9 @@ import { SismosModule } from './sismos/sismos.module';
     AuthModule,
     LeiturasModule,
     PerfilModule,
+    SaudeModule,
     SismosModule,
+    UsuariosModule,
   ],
   providers: [
     // A ordem importa: limite -> autenticacao -> autorizacao.

@@ -4,6 +4,14 @@
   descricao="Avisos abertos por magnitude dos sismos no Japão e por falha de comunicação das estações."
 />
 
+@if (ehAdmin()) {
+  <section class="previa" aria-label="Pré-visualizar o alarme em tela cheia">
+    <p>Veja como o alarme aparece quando um alerta alto ou crítico está aberto.</p>
+    <button mat-stroked-button type="button" (click)="alarme.previsualizar('ALTO')">Pré-visualizar alerta alto</button>
+    <button mat-stroked-button type="button" (click)="alarme.previsualizar('CRITICO')">Pré-visualizar alerta crítico</button>
+  </section>
+}
+
 <section class="filtros" aria-label="Filtros">
   <mat-form-field appearance="outline" subscriptSizing="dynamic" class="campo">
     <mat-label>Estado</mat-label>

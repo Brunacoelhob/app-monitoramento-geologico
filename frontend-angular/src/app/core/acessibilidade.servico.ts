@@ -26,6 +26,8 @@ const BASE = {
   escuro: { texto: '#e8edf7', textoSecundario: '#93a0ba', linha: '#1f2a3f', fundo: '#111827', acento: '#7c9cff', frio: '#38bdf8', calor: '#fb923c', atencao: '#fbbf24', alto: '#fb923c', critico: '#f87171' },
   contraste: { texto: '#ffffff', textoSecundario: '#ededed', linha: '#ffffff', fundo: '#000000', acento: '#ffe600', frio: '#5cc8ff', calor: '#ffb000', atencao: '#ffd400', alto: '#ff8a00', critico: '#ff5c5c' },
 };
+export type CoresGrafico = Record<keyof (typeof BASE)['claro'], string>;
+
 const DALTONISMO = {
   protanopia: { frio: '#0072b2', calor: '#e69f00', atencao: '#f0e442', alto: '#e69f00', critico: '#cc79a7' },
   deuteranopia: { frio: '#0072b2', calor: '#e69f00', atencao: '#f0e442', alto: '#e69f00', critico: '#cc79a7' },

@@ -8,6 +8,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { EChartsCoreOption } from 'echarts/core';
 import { Grafico } from '../../compartilhado/grafico/grafico';
+import { baseGrafico, degrade, eixoTempo, eixoValor } from '../../compartilhado/grafico/estilo-grafico';
+import type { ExplicacaoGrafico } from '../../compartilhado/grafico/explicacao-dialog/explicacao-dialog';
 import { provedorGraficos } from '../../compartilhado/grafico/echarts-config';
 import { CabecalhoPagina } from '../../compartilhado/cabecalho-pagina/cabecalho-pagina';
 import { SeloOrigem } from '../../compartilhado/selo-origem/selo-origem';
@@ -104,50 +106,66 @@ export class Estacoes {
 
   // ---------- graficos das series ----------
 
-  private base(nome: string, unidade: string) {
+  protected readonly explicaSismografo: ExplicacaoGrafico = {
+    oQueMostra: 'A amplitude do sinal do sismógrafo da estação ao longo das últimas horas.',
+    comoLer: 'A linha é o "ruído de fundo" da Terra. Picos isolados e altos são vibrações fortes; passe o mouse para ver o valor e o horário.',
+    oQueObservar: 'Um pico logo depois de um terremoto próximo (veja em Sismos) é esperado. Linha reta por muito tempo pode indicar sensor parado.',
+  };
+  protected readonly explicaGps: ExplicacaoGrafico = {
+    oQueMostra: 'Quanto o receptor GPS se deslocou para leste e para norte, em milímetros.',
+    comoLer: 'Linha contínua: deslocamento para leste. Linha tracejada: deslocamento para norte. O movimento lento e constante é o das placas tectônicas.',
+    oQueObservar: 'Um salto repentino costuma acompanhar um terremoto forte; uma tendência suave é o movimento normal da placa.',
+  };
+  protected readonly explicaTemperatura: ExplicacaoGrafico = {
+    oQueMostra: 'A temperatura medida pela estação, dentro e fora do ambiente.',
+    comoLer: 'Linha tracejada azul: interna. Linha contínua laranja: externa. As áreas coloridas só reforçam o formato da curva.',
+    oQueObservar: 'Se a interna acompanha a externa, o ambiente está pouco isolado. Saltos bruscos podem ser falha do sensor.',
+  };
+
+  private base(unidade: string) {
     const c = this.a11y.cores();
-    const estilo = { axisLabel: { color: c.textoSecundario }, axisLine: { lineStyle: { color: c.linha } } };
+    const base = baseGrafico(c, this.a11y.reduzirMovimento());
     return {
       c,
       comum: {
-        useUTC: true, backgroundColor: 'transparent', textStyle: { color: c.textoSecundario },
-        tooltip: { trigger: 'axis' }, legend: { top: 0, textStyle: { color: c.textoSecundario } },
-        grid: { left: 56, right: 24, top: 44, bottom: 56 },
+        ...base,
+        useUTC: true,
+        tooltip: { ...base.tooltip, trigger: 'axis' },
+        grid: { left: 56, right: 24, top: 44, bottom: 40 },
         dataZoom: [{ type: 'inside' }],
-        xAxis: { type: 'time', ...estilo },
-        yAxis: { type: 'value', name: unidade, scale: true, nameTextStyle: { color: c.textoSecundario }, ...estilo, splitLine: { lineStyle: { color: c.linha } } },
+        xAxis: eixoTempo(c),
+        yAxis: eixoValor(c, { name: unidade, scale: true }),
       },
-      nome,
     };
   }
 
   protected readonly opcoesSismografo = computed<EChartsCoreOption>(() => {
-    const { c, comum } = this.base('Sismógrafo', 'Amplitude (mm/s)');
+    const { c, comum } = this.base('Amplitude (mm/s)');
     const s = this.series();
-    return { ...comum, series: [{ name: 'Amplitude', type: 'line', showSymbol: false, lineStyle: { width: 1.5, color: c.acento }, itemStyle: { color: c.acento }, data: (s?.sismografo ?? []).map((p) => [p.instante, p.amplitude]) }] };
+    return { ...comum, series: [{ name: 'Amplitude', type: 'line', showSymbol: false, smooth: true, lineStyle: { width: 1.8, color: c.acento }, itemStyle: { color: c.acento }, areaStyle: { color: degrade(c.acento, 0.25, 0) }, data: (s?.sismografo ?? []).map((p) => [p.instante, p.amplitude]) }] };
   });
 
   protected readonly opcoesGps = computed<EChartsCoreOption>(() => {
-    const { c, comum } = this.base('GPS', 'Deslocamento (mm)');
+    const { c, comum } = this.base('Deslocamento (mm)');
     const s = this.series();
     return {
       ...comum,
       series: [
-        { name: 'Leste', type: 'line', showSymbol: false, lineStyle: { width: 2, color: c.acento }, itemStyle: { color: c.acento }, data: (s?.gps ?? []).map((p) => [p.instante, p.deslocamentoLesteMm]) },
-        { name: 'Norte', type: 'line', showSymbol: false, lineStyle: { width: 2, type: 'dashed', color: c.texto }, itemStyle: { color: c.texto }, data: (s?.gps ?? []).map((p) => [p.instante, p.deslocamentoNorteMm]) },
+        { name: 'Leste', type: 'line', showSymbol: false, smooth: true, lineStyle: { width: 2, color: c.acento }, itemStyle: { color: c.acento }, data: (s?.gps ?? []).map((p) => [p.instante, p.deslocamentoLesteMm]) },
+        { name: 'Norte', type: 'line', showSymbol: false, smooth: true, lineStyle: { width: 2, type: 'dashed', color: c.texto }, itemStyle: { color: c.texto }, data: (s?.gps ?? []).map((p) => [p.instante, p.deslocamentoNorteMm]) },
       ],
     };
   });
 
   protected readonly opcoesTemperatura = computed<EChartsCoreOption>(() => {
-    const { c, comum } = this.base('Temperatura', 'Temperatura (°C)');
+    const { c, comum } = this.base('Temperatura (°C)');
     const s = this.series();
     const de = (sentido: string) => (s?.temperatura ?? []).filter((p) => p.sentido === sentido).map((p) => [p.instante, p.temperatura]);
     return {
       ...comum,
       series: [
-        { name: 'Interno', type: 'line', showSymbol: false, lineStyle: { width: 2, type: 'dashed', color: c.frio }, itemStyle: { color: c.frio }, data: de('INTERNO') },
-        { name: 'Externo', type: 'line', showSymbol: false, lineStyle: { width: 2, color: c.calor }, itemStyle: { color: c.calor }, data: de('EXTERNO') },
+        { name: 'Interno', type: 'line', showSymbol: false, smooth: true, lineStyle: { width: 2.5, type: 'dashed', color: c.frio }, itemStyle: { color: c.frio }, areaStyle: { color: degrade(c.frio, 0.22, 0) }, data: de('INTERNO') },
+        { name: 'Externo', type: 'line', showSymbol: false, smooth: true, lineStyle: { width: 2.5, color: c.calor }, itemStyle: { color: c.calor }, areaStyle: { color: degrade(c.calor, 0.22, 0) }, data: de('EXTERNO') },
       ],
     };
   });

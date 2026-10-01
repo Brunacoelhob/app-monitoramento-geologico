@@ -1,6 +1,6 @@
-# Regras de negócio: módulo de sismos (Japão)
+# Regras de negócio: módulo de sismos (Japão e mundo)
 
-Status: **aprovado e implementado no backend**. O frontend vem a seguir.
+Status: **aprovado e implementado** (backend e frontend). As regras RN-30 em diante foram acrescentadas depois da primeira versão e estão marcadas com *(nova)*.
 
 ## Decisões já tomadas
 
@@ -9,8 +9,8 @@ Status: **aprovado e implementado no backend**. O frontend vem a seguir.
 | Vínculo com temperatura | Uma **estação** tem vários sensores (temperatura, sismógrafo, GPS). O painel cruza os dados por estação e período. |
 | Alertas | **Níveis fixos por magnitude.** Sem regras configuráveis pelo admin. |
 | Permissões | **Admin** gerencia. **Visualizador** só consulta e baixa relatórios. |
-| Dados | Sismos **reais do USGS** (região do Japão) + sismógrafo e GPS **simulados**, sempre marcados como "simulado". |
-| Escopo | Projeto de portfólio. Região: Japão. |
+| Dados | Sismos **reais do USGS** (Japão em detalhe + o resto do mundo) + sismógrafo e GPS **simulados**, sempre marcados como "simulado". |
+| Escopo | Projeto de portfólio. **Alertas só no Japão**; o resto do mundo aparece no mapa e nos gráficos. |
 
 ## Glossário
 
@@ -33,8 +33,8 @@ Status: **aprovado e implementado no backend**. O frontend vem a seguir.
 
 - **RN-06.** Todo evento e toda leitura têm origem. A interface mostra o selo **"simulado"** em tudo que for `SIMULADO`, em telas, gráficos e relatórios.
 - **RN-07.** Eventos do USGS:
-  - Região: Japão (latitude 24 a 46, longitude 122 a 146).
-  - Magnitude mínima importada: 4,0.
+  - Japão (latitude 24 a 46, longitude 122 a 146): magnitude mínima importada **4,0**.
+  - Resto do mundo: magnitude mínima **4,5** (`SISMOS_MAGNITUDE_MINIMA_MUNDO`). Na primeira carga traz os últimos 30 dias; o histórico do mundo é considerado carregado quando o evento não japonês mais antigo tem pelo menos cerca de 28 dias.
   - Busca a cada 10 minutos.
   - O id do USGS identifica o evento: reimportar **nunca duplica**.
   - Se o USGS revisar os dados, o evento é atualizado. Se o USGS excluir o evento, ele fica `CANCELADO`.
@@ -69,7 +69,7 @@ Status: **aprovado e implementado no backend**. O frontend vem a seguir.
 
 ## 5. Alertas
 
-- **RN-16.** Todo evento com magnitude ≥ 4,5 gera **um** alerta. Reimportar o mesmo evento não cria outro.
+- **RN-16.** Todo evento com magnitude ≥ 4,5 **dentro de uma região monitorada** (RN-31) gera **um** alerta. Reimportar o mesmo evento não cria outro.
 - **RN-17.** Se o USGS revisar a magnitude e o nível mudar, o alerta é reclassificado e o histórico guarda o nível anterior. Se o evento for cancelado, o alerta é encerrado automaticamente com o motivo "evento cancelado".
 - **RN-18.** Estados do alerta: `ABERTO` → `RECONHECIDO` → `ENCERRADO`. Também é permitido `ABERTO` → `ENCERRADO`, com motivo obrigatório. Não há reabertura: um novo evento gera um novo alerta.
 - **RN-19.** Só o **admin** reconhece e encerra alertas. Cada mudança guarda quem fez e quando.
@@ -79,7 +79,7 @@ Status: **aprovado e implementado no backend**. O frontend vem a seguir.
 
 ## 6. Consultas e relatórios
 
-- **RN-23.** Filtros do módulo: período, magnitude mínima, nível, origem e estação. O padrão é os **últimos 30 dias até hoje**, e o período é escolhido só pelo calendário, sem limite de dias (mesma regra do painel de temperatura).
+- **RN-23.** Filtros do módulo: período, **região (RN-30)**, magnitude mínima, nível, origem e estação. O padrão é os **últimos 30 dias até hoje**, e o período é escolhido só pelo calendário, sem limite de dias (mesma regra do painel de temperatura).
 - **RN-24.** Indicadores do painel: eventos no período, maior magnitude, alertas abertos por nível e estações online (com leitura nos últimos 15 minutos) sobre o total de estações ativas.
 - **RN-25.** Relatório em PDF, Excel e CSV de eventos e alertas, respeitando os filtros. Máximo de 500 mil linhas em Excel e CSV. A origem (`REAL` ou `SIMULADO`) aparece em todas as linhas.
 
@@ -90,24 +90,36 @@ Status: **aprovado e implementado no backend**. O frontend vem a seguir.
 - **RN-28.** Datas ficam guardadas em **UTC**. O módulo exibe em **horário do Japão (JST, UTC+9)** com essa indicação, e os relatórios trazem as duas colunas.
 - **RN-29.** Retenção: leituras brutas de sismógrafo por 30 dias; eventos, alertas e demais leituras sem prazo.
 
+## 8. Regiões, avisos e gestão *(nova)*
+
+- **RN-30.** O mundo é dividido em **12 regiões sísmicas** (caixas geográficas): Japão, Filipinas, Indonésia, Nova Zelândia e Pacífico Sul, Alasca e Aleutas, costa oeste da América do Norte, México e América Central, Andes, Islândia e Atlântico Norte, Mediterrâneo e Turquia, Irã e Ásia Central, Himalaia e China. Cada região tem placas envolvidas e um texto de contexto geológico. O filtro `regiao` restringe todas as consultas (lista, totais, série, mapa e relatórios).
+- **RN-30a.** A contagem de sismos por região (`GET /eventos/regioes`) usa **todos os filtros, menos a própria região**, para que o mapa mostre os números de todas as regiões ao mesmo tempo. Clicar em uma região do mapa, ou no botão dela, aplica o filtro.
+- **RN-31.** Só as regiões com `alerta = true` (hoje, apenas o **Japão**) geram alertas de sismo. Um terremoto forte fora delas aparece no mapa, nos gráficos e nos relatórios, mas não abre alerta.
+- **RN-32.** **Alarme em tela cheia:** alertas de sismo **abertos** de nível `ALTO` ou `CRITICO` acendem uma luz vermelha suave nas bordas da tela e um aviso com *o que aconteceu* e *o que verificar em seguida*. O pulso é lento (abaixo de 1 Hz); com "reduzir animações" a luz fica parada. O aviso é dispensável (botão ou `Esc`); dispensar só esconde o aviso daquele alerta naquele navegador, o alerta continua aberto. O administrador tem botões de **pré-visualização** na tela de Alertas (nada é gravado).
+- **RN-33.** **Notificação externa:** se `ALERTA_WEBHOOK_URL` estiver definida, cada alerta novo de nível `ALTO` ou `CRITICO` é enviado por `POST` (JSON com `text`, `content` e os dados do alerta). A falha do envio nunca impede o alerta de ser criado. Réplicas e alertas de nível Atenção não são enviados.
+- **RN-34.** **Usuários:** só o admin lista, cria, troca o papel e remove contas (`/usuarios`). Não há cadastro público. O admin **não pode alterar o próprio papel nem remover a própria conta** (evita ficar sem administrador). Remover uma conta apaga também o avatar e o acervo de imagens dela. A troca de papel vale no próximo login.
+- **RN-35.** **Saúde:** `GET /api/saude` é pública, sem limite de requisições, e confere a API e o banco (`503` se o banco não responde). É usada pelo *healthcheck* do Docker.
+
 ## Valores configuráveis (ficam no `.env`, não no código)
 
 | Parâmetro | Valor inicial |
 |---|---|
-| Magnitude mínima importada | 4,0 |
+| Magnitude mínima importada (Japão / resto do mundo) | 4,0 / 4,5 |
 | Intervalo de busca no USGS | 10 min |
 | Distância de estação próxima | 300 km |
 | Janela de réplica | 50 km e 24 h |
 | Encerramento automático do nível Atenção | 72 h |
 | Tempo sem comunicação | 15 min |
 | Atraso máximo de leitura | 24 h |
+| Retenção do sismógrafo bruto | 30 dias |
+| Webhook de alertas (opcional) | desligado |
 
-## Pontos que ainda preciso que você confirme
+## Pontos que estavam em aberto e como ficaram
 
-1. **Horário de exibição:** JST no módulo do Japão (RN-28) ou UTC como no de temperatura?
-2. **Estações iniciais:** sugiro quatro, simuladas: Tóquio, Sendai, Osaka e Fukuoka. Pode ser outra lista?
-3. **Réplicas (RN-21) e encerramento automático (RN-20):** são regras a mais para o portfólio mostrar domínio do problema. Mantém ou tira para simplificar?
-4. **Retenção (RN-29):** ok guardar só 30 dias do sismógrafo bruto?
+1. **Horário de exibição:** o módulo de sismos mostra **JST** (RN-28), sempre com a indicação do fuso; a API fala UTC.
+2. **Estações iniciais:** `npm run sismos:semear` cria quatro estações simuladas no Japão.
+3. **Réplicas (RN-21) e encerramento automático (RN-20):** mantidos, por mostrarem domínio do problema.
+4. **Retenção (RN-29):** 30 dias do sismógrafo bruto (`SISMOS_RETENCAO_SISMOGRAFO_DIAS`).
 
 ## Decisões tomadas na implementação
 

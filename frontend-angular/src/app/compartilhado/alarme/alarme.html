@@ -1,0 +1,63 @@
+@if (alarme.atual(); as a) {
+  <div class="luz" [class.critico]="a.nivel === 'CRITICO'" aria-hidden="true"></div>
+
+  <div class="fundo">
+    <section
+      class="aviso"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="alarme-titulo"
+      aria-describedby="alarme-descricao"
+      cdkTrapFocus
+      [cdkTrapFocusAutoCapture]="true"
+      (keydown.escape)="alarme.dispensar()"
+    >
+      @if (ehPrevia()) {
+        <p class="previa">Pré-visualização: este aviso é apenas um exemplo e não existe na API.</p>
+      }
+
+      <header>
+        <span class="icone"><mat-icon aria-hidden="true">warning</mat-icon></span>
+        <div>
+          <span class="nivel">Alerta {{ a.nivel === 'CRITICO' ? 'crítico' : 'alto' }}</span>
+          <h2 id="alarme-titulo">{{ a.titulo }}</h2>
+        </div>
+      </header>
+
+      <div id="alarme-descricao">
+        <h3>O que aconteceu</h3>
+        @if (a.evento; as e) {
+          <p>
+            Terremoto de <strong>magnitude {{ e.magnitude.toFixed(1).replace('.', ',') }}</strong>,
+            a {{ e.profundidadeKm.toFixed(0) }} km de profundidade, em {{ e.local }}, em
+            {{ e.ocorridoEm | date: 'dd/MM/yyyy HH:mm' : fuso }} (horário do Japão).
+          </p>
+        }
+        <p>{{ significado() }}</p>
+      </div>
+
+      <div>
+        <h3>O que verificar agora</h3>
+        <ol>
+          @if (a.nivel === 'CRITICO') {
+            <li>Siga o plano de emergência da sua organização e os avisos oficiais da Agência Meteorológica do Japão (JMA).</li>
+          }
+          <li>Confirme a magnitude e a profundidade no USGS ou na JMA: os primeiros valores costumam ser revisados.</li>
+          <li>Abra o alerta e veja quais estações estão a até 300 km do epicentro e se continuam online.</li>
+          <li>Acompanhe as réplicas nas próximas horas; elas aparecem agrupadas no mesmo alerta.</li>
+          <li>Reconheça o alerta para registrar que alguém já o viu.</li>
+        </ol>
+      </div>
+
+      <footer>
+        @if (!ehPrevia()) {
+          <a mat-flat-button [routerLink]="['/alertas', a.id]" (click)="alarme.dispensar()">Ver detalhes do alerta</a>
+        }
+        <button mat-stroked-button type="button" (click)="alarme.dispensar()">
+          {{ ehPrevia() ? 'Fechar pré-visualização' : 'Dispensar aviso' }}
+        </button>
+      </footer>
+      <p class="rodape">Projeto de portfólio: não substitui alertas oficiais.</p>
+    </section>
+  </div>
+}

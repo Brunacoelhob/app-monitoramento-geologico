@@ -76,13 +76,13 @@
         <p class="nota">Esta estação não tem leituras neste intervalo.</p>
       }
       @if (s.sismografo.length) {
-        <app-grafico titulo="Sismógrafo" descricao="Amplitude do sinal ao longo do tempo. Picos indicam tremores." arquivo="estacao-sismografo" altura="16rem" [opcoes]="opcoesSismografo()" />
+        <app-grafico titulo="Sismógrafo" descricao="Amplitude do sinal ao longo do tempo. Picos indicam tremores." arquivo="estacao-sismografo" [explicacao]="explicaSismografo" altura="16rem" [opcoes]="opcoesSismografo()" />
       }
       @if (s.gps.length) {
-        <app-grafico titulo="GPS" descricao="Deslocamento acumulado da estação, para o leste e para o norte, em milímetros." arquivo="estacao-gps" altura="16rem" [opcoes]="opcoesGps()" />
+        <app-grafico titulo="GPS" descricao="Deslocamento acumulado da estação, para o leste e para o norte, em milímetros." arquivo="estacao-gps" [explicacao]="explicaGps" altura="16rem" [opcoes]="opcoesGps()" />
       }
       @if (s.temperatura.length) {
-        <app-grafico titulo="Temperatura" descricao="Sensor interno (tracejado) e externo." arquivo="estacao-temperatura" altura="16rem" [opcoes]="opcoesTemperatura()" />
+        <app-grafico titulo="Temperatura" descricao="Sensor interno (tracejado) e externo." arquivo="estacao-temperatura" [explicacao]="explicaTemperatura" altura="16rem" [opcoes]="opcoesTemperatura()" />
       }
     } @else {
       <p class="nota erro" role="alert">Não foi possível carregar as leituras desta estação.</p>

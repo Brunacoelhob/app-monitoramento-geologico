@@ -34,3 +34,6 @@ pgdata/
 # Imagens enviadas pelos usuarios
 backend/uploads/
 uploads/
+
+# Uploads gerados pelos testes de integracao
+backend/uploads-teste/

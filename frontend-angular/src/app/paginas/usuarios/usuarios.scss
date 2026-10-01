@@ -1,0 +1,80 @@
+:host {
+  display: block;
+}
+
+.bloco {
+  margin-top: 1.5rem;
+}
+
+.cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+  }
+}
+
+.tabela-rolagem {
+  overflow-x: auto;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--borda);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    color: var(--texto-2);
+    font-size: 0.875rem;
+  }
+
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+
+  small {
+    color: var(--texto-2);
+    font-weight: 400;
+  }
+}
+
+.papel {
+  width: 10.5rem;
+}
+
+.voce {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 14%, transparent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.perigo:not(:disabled) {
+  color: var(--sev-critico);
+}
+
+.nota,
+.aviso {
+  margin: 0.75rem 0 0;
+  color: var(--texto-2);
+  font-size: 0.875rem;
+}

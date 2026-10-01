@@ -76,7 +76,7 @@ table {
   }
 
   &[data-situacao='Sem comunicação'] {
-    color: var(--sev-alto);
+    color: color-mix(in srgb, var(--sev-alto) 62%, var(--texto));
   }
 
   &[data-situacao='Inativa'],

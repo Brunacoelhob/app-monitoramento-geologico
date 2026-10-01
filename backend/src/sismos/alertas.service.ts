@@ -9,6 +9,7 @@ import { EstadoAlerta, EventoSismico, NivelAlerta, Prisma, TipoAlerta } from '@p
 import { UsuarioLogado } from '../auth/decoradores';
 import { PrismaService } from '../prisma/prisma.service';
 import { regras } from './config';
+import { NotificadorService } from './notificador.service';
 import { EstacoesService } from './estacoes.service';
 import { emRegiaoMonitorada } from './regioes';
 import { distanciaKm, ehReplica, estaOnline, nivelPorMagnitude } from './regras';
@@ -28,6 +29,7 @@ export class AlertasService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly estacoes: EstacoesService,
+    private readonly notificador: NotificadorService,
   ) {}
 
   // RN-19: toda mudanca guarda quem fez e quando.
@@ -121,6 +123,7 @@ export class AlertasService {
         },
       });
       await this.registrar(alerta.id, 'aberto', 'Gerado automaticamente a partir do evento.');
+      void this.notificador.alertaAberto(alerta, evento); // sem await: o webhook nao atrasa o processamento
     } catch (erro) {
       // Duas execucoes ao mesmo tempo: a segunda bate no indice unico e e ignorada.
       if (!(erro instanceof Prisma.PrismaClientKnownRequestError && erro.code === 'P2002')) throw erro;

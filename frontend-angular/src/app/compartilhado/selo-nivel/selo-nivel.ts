@@ -31,7 +31,8 @@ const DADOS: Record<Nivel, { rotulo: string; icone: string }> = {
       padding: 0.15rem 0.65rem 0.15rem 0.4rem;
       border-radius: 999px;
       background: color-mix(in srgb, var(--cor) 14%, transparent);
-      color: var(--cor);
+      // Texto mais escuro (ou mais claro, no tema escuro) que o fundo translucido: contraste minimo 4,5:1
+      color: color-mix(in srgb, var(--cor) 62%, var(--texto));
       font-weight: 800;
       font-size: 0.8125rem;
       white-space: nowrap;

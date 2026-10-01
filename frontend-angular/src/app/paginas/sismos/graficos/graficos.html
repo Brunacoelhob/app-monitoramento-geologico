@@ -12,6 +12,7 @@
     titulo="Sismos por dia"
     descricao="Barras: quantos sismos em cada dia. Linha tracejada: a maior magnitude do dia."
     arquivo="sismos-por-dia"
+    [explicacao]="explicaPorDia"
     [opcoes]="opcoesPorDia()"
   >
     <details class="tabela">
@@ -32,6 +33,7 @@
     titulo="Magnitude de cada sismo"
     descricao="Cada ponto é um sismo. O tamanho e a forma mostram a magnitude e o nível; passe o mouse para ver o local."
     arquivo="sismos-magnitude"
+    [explicacao]="explicaMagnitude"
     altura="26rem"
     [opcoes]="opcoesMagnitude()"
   />
@@ -40,6 +42,7 @@
     titulo="Sismos por nível"
     descricao="Quantos sismos do período ficam em cada nível de magnitude."
     arquivo="sismos-por-nivel"
+    [explicacao]="explicaNivel"
     altura="16rem"
     [opcoes]="opcoesNivel()"
   >

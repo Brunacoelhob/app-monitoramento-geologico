@@ -1,0 +1,12 @@
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: min(26rem, 84vw);
+  padding-top: 0.5rem;
+}
+
+.erro {
+  margin: 0.25rem 0 0;
+  color: var(--mat-sys-error);
+}

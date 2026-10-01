@@ -13,3 +13,9 @@ export const guardaVisitante: CanActivateFn = () => {
   const auth = inject(AuthServico);
   return auth.autenticado() ? inject(Router).createUrlTree(['/inicio']) : true;
 };
+
+// Telas so do administrador (o backend tambem recusa com 403, isto so evita mostrar a tela vazia).
+export const guardaAdmin: CanActivateFn = () => {
+  const auth = inject(AuthServico);
+  return auth.usuario()?.papel === 'ADMIN' ? true : inject(Router).createUrlTree(['/inicio']);
+};

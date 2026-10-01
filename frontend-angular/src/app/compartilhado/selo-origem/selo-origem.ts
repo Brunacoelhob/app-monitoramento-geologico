@@ -28,7 +28,7 @@ import { Origem } from '../../core/modelos';
     }
     .selo.simulado {
       background: color-mix(in srgb, var(--acento) 14%, transparent);
-      color: var(--acento);
+      color: color-mix(in srgb, var(--acento) 62%, var(--texto));
     }
     mat-icon {
       font-size: 1.05rem;

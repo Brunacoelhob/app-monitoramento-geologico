@@ -10,14 +10,25 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
+import { Alarme } from '../../compartilhado/alarme/alarme';
 import { AuthServico } from '../../core/auth.servico';
 import { PerfilServico } from '../../core/perfil.servico';
 
 const CHAVE_MENU = 'iot.menu';
 
+const ITENS_MENU = [
+  { rota: '/inicio', rotulo: 'Início', icone: 'home' },
+  { rota: '/temperatura', rotulo: 'Temperatura', icone: 'device_thermostat' },
+  { rota: '/sismos', rotulo: 'Sismos', icone: 'public' },
+  { rota: '/alertas', rotulo: 'Alertas', icone: 'notifications_active' },
+  { rota: '/estacoes', rotulo: 'Estações', icone: 'sensors' },
+  { rota: '/perfil', rotulo: 'Meu perfil', icone: 'account_circle' },
+];
+
 @Component({
   selector: 'app-estrutura',
   imports: [
+    Alarme,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -51,14 +62,12 @@ export class Estrutura {
   // comeca fechado para nao cobrir o conteudo.
   protected readonly menuAberto = signal(this.preferenciaMenu());
 
-  protected readonly itensMenu = [
-    { rota: '/inicio', rotulo: 'Início', icone: 'home' },
-    { rota: '/temperatura', rotulo: 'Temperatura', icone: 'device_thermostat' },
-    { rota: '/sismos', rotulo: 'Sismos', icone: 'public' },
-    { rota: '/alertas', rotulo: 'Alertas', icone: 'notifications_active' },
-    { rota: '/estacoes', rotulo: 'Estações', icone: 'sensors' },
-    { rota: '/perfil', rotulo: 'Meu perfil', icone: 'account_circle' },
-  ];
+  // "Usuarios" so aparece para o administrador
+  protected readonly itensMenu = computed(() => {
+    const itens = [...ITENS_MENU];
+    if (this.auth.usuario()?.papel === 'ADMIN') itens.splice(itens.length - 1, 0, { rota: '/usuarios', rotulo: 'Usuários', icone: 'group' });
+    return itens;
+  });
 
   // Dados da rota atual (vem de "data" em app.routes.ts): titulo da secao e se ocupa a largura toda
   private readonly dadosRota = toSignal(

@@ -1,0 +1,74 @@
+<app-cabecalho-pagina
+  icone="group"
+  titulo="Usuários"
+  descricao="Quem tem acesso ao sistema. Só administradores veem esta tela; não existe cadastro público."
+/>
+
+<section class="bloco">
+  <header class="cabeca">
+    <h2>Contas cadastradas</h2>
+    <button mat-flat-button type="button" (click)="novo()"><mat-icon aria-hidden="true">person_add</mat-icon> Novo usuário</button>
+  </header>
+
+  @if (erro()) {
+    <p class="aviso" role="alert">Não foi possível carregar os usuários. Tente novamente em instantes.</p>
+  } @else {
+    <div class="tabela-rolagem">
+      <table>
+        <caption class="so-leitor">Usuários do sistema</caption>
+        <thead>
+          <tr>
+            <th scope="col">Usuário</th>
+            <th scope="col">Papel</th>
+            <th scope="col">Criado em</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of usuarios(); track u.id) {
+            <tr>
+              <th scope="row">
+                <strong>{{ u.nome || u.email }}</strong>
+                @if (ehVoce(u)) {
+                  <span class="voce">você</span>
+                }
+                <br /><small>{{ u.email }}</small>
+              </th>
+              <td>
+                <mat-select
+                  class="papel"
+                  [value]="u.papel"
+                  [disabled]="ehVoce(u)"
+                  [attr.aria-label]="'Papel de ' + u.email"
+                  (selectionChange)="mudarPapel(u, $event.value)"
+                >
+                  <mat-option value="ADMIN">{{ rotulo.ADMIN }}</mat-option>
+                  <mat-option value="VISUALIZADOR">{{ rotulo.VISUALIZADOR }}</mat-option>
+                </mat-select>
+              </td>
+              <td>{{ u.criadoEm | date: 'dd/MM/yyyy' }}</td>
+              <td>
+                <button
+                  mat-button
+                  type="button"
+                  class="perigo"
+                  [disabled]="ehVoce(u)"
+                  [attr.aria-label]="'Remover ' + u.email"
+                  (click)="remover(u)"
+                >
+                  <mat-icon aria-hidden="true">delete</mat-icon> Remover
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4">@if (carregando()) { Carregando… } @else { Nenhum usuário. }</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <p class="nota">
+    A troca de papel vale a partir do próximo login da pessoa: o acesso atual dela continua com o papel antigo até expirar.
+  </p>
+</section>

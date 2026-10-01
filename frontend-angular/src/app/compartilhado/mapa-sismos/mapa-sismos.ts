@@ -137,11 +137,11 @@ export class MapaSismos implements OnDestroy {
     if (!this.mapa || this.baseEscura === escuro) return;
     this.baseEscura = escuro;
     this.base?.remove();
-    const estilo = escuro ? 'dark_all' : 'light_all';
-    this.base = L.tileLayer(`https://{s}.basemaps.cartocdn.com/${estilo}/{z}/{x}/{y}{r}.png`, {
-      subdomains: 'abcd',
+    // Mapa-base cinza do Esri (o CARTO passou a exigir chave de API)
+    const estilo = escuro ? 'World_Dark_Gray_Base' : 'World_Light_Gray_Base';
+    this.base = L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/${estilo}/MapServer/tile/{z}/{y}/{x}`, {
       maxZoom: 12,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> e <a href="https://carto.com/attributions">CARTO</a>',
+      attribution: 'Mapa-base: Esri, HERE, Garmin, OpenStreetMap',
     }).addTo(this.mapa);
     this.base.bringToBack();
   }

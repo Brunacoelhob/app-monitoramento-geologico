@@ -1,6 +1,8 @@
 <mat-sidenav-container class="container">
   <mat-sidenav
     class="menu"
+    role="complementary"
+    aria-label="Menu lateral"
     [mode]="modoMenu()"
     [opened]="menuAberto()"
     (openedChange)="menuAberto.set($event)"
@@ -11,7 +13,7 @@
     </div>
     <nav aria-label="Menu principal">
       <mat-nav-list>
-        @for (item of itensMenu; track item.rota) {
+        @for (item of itensMenu(); track item.rota) {
           <a
             mat-list-item
             [routerLink]="item.rota"
@@ -30,7 +32,7 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <mat-toolbar class="topo">
+    <mat-toolbar class="topo" role="banner">
       <button
         mat-icon-button
         [attr.aria-label]="menuAberto() ? 'Recolher o menu' : 'Abrir o menu'"
@@ -80,3 +82,5 @@
     </footer>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<app-alarme />

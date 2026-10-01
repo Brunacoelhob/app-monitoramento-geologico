@@ -1,4 +1,4 @@
-<main class="tela">
+<main id="conteudo" class="tela" tabindex="-1">
   <!-- Palco escuro com o globo animado (decorativo); no celular some -->
   <section class="palco" [class.com-efeito]="efeitoAtivo()">
     <div #fundo class="fundo" aria-hidden="true"></div>
@@ -21,9 +21,9 @@
 
   <section class="painel">
     <form [formGroup]="formulario" (ngSubmit)="entrar()" class="cartao" novalidate>
-      <div class="marca"><mat-icon aria-hidden="true">public</mat-icon> Monitoramento</div>
-      <h1>Entrar</h1>
-      <p class="ajuda">Use o e-mail e a senha da sua conta.</p>
+      <div class="marca"><span class="logo"><mat-icon aria-hidden="true">public</mat-icon></span> Monitoramento</div>
+      <h1>Acesse sua conta</h1>
+      <p class="ajuda">Entre com o e-mail e a senha da sua conta.</p>
 
       <mat-form-field appearance="outline">
         <mat-label>E-mail</mat-label>

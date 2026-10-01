@@ -1,0 +1,34 @@
+<app-mapa-sismos
+  [pontos]="dados.pontos()"
+  [estacoes]="estacoes.estacoes()"
+  [regioes]="dados.regioes()"
+  [regiao]="filtros.regiao()"
+  (escolherRegiao)="filtros.definirRegiao($event)"
+  altura="36rem"
+/>
+
+@if (escolhida(); as r) {
+  <section class="contexto" aria-labelledby="t-contexto">
+    <header>
+      <h2 id="t-contexto">{{ r.nome }}</h2>
+      @if (r.alerta) {
+        <span class="selo">Região com alertas</span>
+      } @else {
+        <span class="selo neutro">Somente observação</span>
+      }
+    </header>
+    <p>{{ r.contexto }}</p>
+    <dl>
+      <div><dt>Placas envolvidas</dt><dd>{{ r.placas }}</dd></div>
+      <div><dt>Sismos no período</dt><dd class="numero">{{ r.eventos }}</dd></div>
+      <div><dt>Maior magnitude</dt><dd class="numero">{{ r.maiorMagnitude === null ? '—' : 'M' + r.maiorMagnitude.toFixed(1) }}</dd></div>
+    </dl>
+    <button type="button" class="limpar" (click)="filtros.definirRegiao(null)">Ver o mundo todo</button>
+  </section>
+} @else {
+  <p class="dica">Clique em uma região do mapa, ou em um dos botões acima dele, para filtrar os sismos e ler o contexto geológico.</p>
+}
+
+@if (dados.pontos().length === 0 && !dados.carregando()) {
+  <p class="vazio">Nenhum sismo neste período{{ filtros.regiao() ? ' nesta região' : '' }}. Escolha outras datas no calendário.</p>
+}

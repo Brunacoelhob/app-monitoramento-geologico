@@ -21,8 +21,15 @@
       <app-cartao-kpi icone="sensors" titulo="Estações online" [valor]="sismos.totais()?.estacoes?.online ?? null" [sufixo]="sufixoEstacoes()" [carregando]="sismos.carregando()" descricao="Leitura nos últimos 15 min" (abrir)="irPara('/estacoes')" />
     </div>
 
-    <app-mapa-sismos [pontos]="sismos.pontos()" [estacoes]="estacoes.estacoes()" altura="26rem" [compacto]="true" />
-    <p class="nota">Mapa ilustrativo. Para explorar, abra <a routerLink="/sismos/mapa">a aba Mapa</a>.</p>
+    <app-mapa-sismos
+      [pontos]="sismos.pontos()"
+      [estacoes]="estacoes.estacoes()"
+      [regioes]="sismos.regioes()"
+      altura="26rem"
+      [compacto]="true"
+      (escolherRegiao)="escolherRegiao($event)"
+    />
+    <p class="nota">Clique em uma região para abrir o mapa filtrado, ou <a routerLink="/sismos/mapa">explore a aba Mapa</a>.</p>
   </section>
 
   <aside class="lateral">

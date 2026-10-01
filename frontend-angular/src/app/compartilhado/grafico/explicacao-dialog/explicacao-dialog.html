@@ -1,0 +1,26 @@
+<div class="modal">
+  <header class="cabecalho">
+    <span class="icone"><mat-icon aria-hidden="true">insights</mat-icon></span>
+    <div class="titulos">
+      <span class="rotulo">Entenda este gráfico</span>
+      <h2 mat-dialog-title>{{ d.titulo }}</h2>
+    </div>
+    <button mat-icon-button mat-dialog-close aria-label="Fechar"><mat-icon>close</mat-icon></button>
+  </header>
+
+  <mat-dialog-content>
+    <section>
+      <h3>O que ele mostra</h3>
+      <p>{{ d.oQueMostra }}</p>
+    </section>
+    <section>
+      <h3>Como ler</h3>
+      <p>{{ d.comoLer }}</p>
+    </section>
+    <p class="dica"><mat-icon aria-hidden="true">lightbulb</mat-icon> {{ d.oQueObservar }}</p>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-flat-button mat-dialog-close>Entendi</button>
+  </mat-dialog-actions>
+</div>

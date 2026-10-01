@@ -1,10 +1,12 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import type { ECharts, EChartsCoreOption } from 'echarts/core';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { AcessibilidadeServico } from '../../core/acessibilidade.servico';
 import { salvarArquivo } from '../../core/arquivo';
+import { ExplicacaoGraficoDialog, type ExplicacaoGrafico } from './explicacao-dialog/explicacao-dialog';
 
 // Grafico com titulo, descricao, botao "Baixar imagem" (PNG) e um espaco para a tabela
 // equivalente (acessibilidade: quem nao enxerga o grafico le os mesmos dados).
@@ -20,14 +22,21 @@ export class Grafico {
   readonly opcoes = input.required<EChartsCoreOption>();
   readonly altura = input('22rem');
   readonly arquivo = input('grafico');
+  readonly explicacao = input<ExplicacaoGrafico | null>(null);
 
   private readonly a11y = inject(AcessibilidadeServico);
+  private readonly dialogo = inject(MatDialog);
   private instancia: ECharts | null = null;
   protected readonly pronto = signal(false);
 
   protected aoIniciar(instancia: ECharts) {
     this.instancia = instancia;
     this.pronto.set(true);
+  }
+
+  protected entender() {
+    const e = this.explicacao();
+    if (e) this.dialogo.open(ExplicacaoGraficoDialog, { data: { titulo: this.titulo(), ...e }, maxWidth: '92vw', autoFocus: 'dialog' });
   }
 
   protected baixarImagem() {

@@ -1,4 +1,4 @@
-// Cria as estacoes simuladas do Japao, preenche as ultimas horas de leituras
+// Cria as estacoes simuladas do Japao e preenche as ultimas horas de leituras
 // simuladas e importa os sismos do USGS. Pode rodar varias vezes.
 // Uso: npm run sismos:semear
 

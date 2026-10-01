@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -8,18 +9,23 @@ import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { CabecalhoPagina } from '../../compartilhado/cabecalho-pagina/cabecalho-pagina';
 import { SeloNivel } from '../../compartilhado/selo-nivel/selo-nivel';
+import { AlarmeServico } from '../../core/alarme.servico';
+import { AuthServico } from '../../core/auth.servico';
 import { AlertaResumo, EstadoAlerta, NivelAlerta } from '../../core/modelos';
 import { FUSO_JAPAO } from '../../core/nivel';
 import { FiltrosAlertas, SismosServico } from '../../core/sismos.servico';
 
 @Component({
   selector: 'app-alertas',
-  imports: [DatePipe, MatFormFieldModule, MatPaginatorModule, MatProgressBarModule, MatSelectModule, MatTableModule, RouterLink, CabecalhoPagina, SeloNivel],
+  imports: [DatePipe, MatButtonModule, MatFormFieldModule, MatPaginatorModule, MatProgressBarModule, MatSelectModule, MatTableModule, RouterLink, CabecalhoPagina, SeloNivel],
   templateUrl: './alertas.html',
   styleUrl: './alertas.scss',
 })
 export class Alertas {
   private readonly sismos = inject(SismosServico);
+  protected readonly alarme = inject(AlarmeServico);
+  private readonly auth = inject(AuthServico);
+  protected readonly ehAdmin = computed(() => this.auth.usuario()?.papel === 'ADMIN');
 
   protected readonly colunas = ['nivel', 'titulo', 'tipo', 'estado', 'abertoEm', 'replicas'];
   protected readonly itens = signal<AlertaResumo[]>([]);

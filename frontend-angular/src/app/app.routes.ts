@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { guardaAutenticado, guardaVisitante } from './core/auth.guard';
+import { guardaAdmin, guardaAutenticado, guardaVisitante } from './core/auth.guard';
 
 export const routes: Routes = [
   {
@@ -54,6 +54,12 @@ export const routes: Routes = [
         path: 'estacoes',
         data: { titulo: 'Estações' },
         loadComponent: () => import('./paginas/estacoes/estacoes').then((m) => m.Estacoes),
+      },
+      {
+        path: 'usuarios',
+        canActivate: [guardaAdmin],
+        data: { titulo: 'Usuários' },
+        loadComponent: () => import('./paginas/usuarios/usuarios').then((m) => m.Usuarios),
       },
       {
         path: 'perfil',

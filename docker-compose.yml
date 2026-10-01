@@ -1,4 +1,4 @@
-# PROJETO: Monitoramento IoT (PostgreSQL + Backend NestJS + Frontend Streamlit)
+# PROJETO: Monitoramento geologico (PostgreSQL + Backend NestJS + Frontend Angular/nginx)
 # As credenciais vem do arquivo .env (veja .env.example).
 # Somente o backend fala com o banco; o frontend so fala com o backend.
 
@@ -36,12 +36,20 @@ services:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@db-iot:5432/${DB_NAME:-iot_db}
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
       JWT_EXPIRA_EM: ${JWT_EXPIRA_EM:-1h}
-      CORS_ORIGENS: ${CORS_ORIGENS:-http://localhost:8501}
+      CORS_ORIGENS: ${CORS_ORIGENS:-http://localhost:8080}
+      ALERTA_WEBHOOK_URL: ${ALERTA_WEBHOOK_URL:-}
     volumes:
       # Avatares e acervo de imagens dos usuarios
       - iot_uploads:/app/uploads
     ports:
       - "127.0.0.1:${PORTA_API:-3000}:3000"
+    healthcheck:
+      # A imagem so tem node: usa o fetch nativo para chamar a rota de saude
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/saude').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
     networks:
       - rede_banco
       - rede_app
@@ -52,7 +60,8 @@ services:
     container_name: frontend-iot
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "127.0.0.1:8080:8080"
     networks:
