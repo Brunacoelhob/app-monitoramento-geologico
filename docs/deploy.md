@@ -13,7 +13,7 @@ Guia para colocar o sistema no ar em **uma máquina Linux com Docker** (uma VPS,
 ## 2. Configurar os segredos
 
 ```bash
-git clone https://github.com/brunacoelhoc/app-monitoramento-geologico.git
+git clone https://github.com/Brunacoelhob/app-monitoramento-geologico.git
 cd app-monitoramento-geologico
 cp .env.example .env
 ```
